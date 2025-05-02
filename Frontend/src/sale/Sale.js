@@ -1,361 +1,264 @@
-import React, { useState, useEffect } from 'react'
-import Select from 'react-select'
-import api from '../services/api'
-import FinalizeSale from './FinalizeSale'
-import './sale.css'
-
-
+import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
+import api from '../services/api';
+import './sale.css';
 
 export default function Sale() {
-
-  const [clientOptions, setClientOptions] = useState([])
-  const [productOptions, setProductOptions] = useState([])
-  const [currentProduct, setCurrentProduct] = useState(null)
-  const [currentClient, setCurrentClient] = useState(null)
-
-  const [msg, setMsg] = useState([false, ""]) 
-  const [disabledClient, setDisabledClient] = useState(false)
-
-  const [selectedProducts, setSelectedProducts] = useState([])
-  const [nextScreen, setNextScreen] = useState(false)
-
-  const [subTotal, setSubTotal] = useState(0)
-  const [discount, setDiscount] = useState(0)
-
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [productOptions, setProductOptions] = useState([]);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [msg, setMsg] = useState([false, '']);
+  const [obraId, setObraId] = useState(null); // Estado para armazenar o ID da obra selecionada
+  const [obraOptions, setObraOptions] = useState([]); // Estado para armazenar as obras disponíveis
 
   useEffect(() => {
-    getClients()
-    getProducts()
-  }, [])
+    fetchProducts();
+    fetchObras(); // Carregar as obras disponíveis
+  }, []);
 
   useEffect(() => {
-    updateSubTotal()
-
-  }, [selectedProducts])
-
-  useEffect(() => {
-    if (msg[1].length != 0) {
-      setTimeout(() => {
-        setMsg([false, ""])
+    if (msg[1].length !== 0) {
+      const timeout = setTimeout(() => {
+        setMsg([false, '']);
       }, 4000);
+      return () => clearTimeout(timeout);
     }
-  }, [msg])
+  }, [msg]);
 
-  async function getClients() {
-    var { data } = await api.post('/get-clients')
-    if (!data.status) return alert("Erro interno grave, entre em contato com o administrador do site.")
-      
-    console.log("[backend] Clientes recebidos: ", data.clients)
-
-
-    var clientsINFO = []
-    for (var i = 0; i < data.clients.length; i++) {
-      clientsINFO.push({ clientID: data.clients[i].id, label: data.clients[i].nome, value: data.clients[i].id })
-      
-    }
-
-    setClientOptions([...clientsINFO])
-  }
-  async function getProducts() {
-    var { data } = await api.post("/get-products")
-    if (!data.status) return alert("Erro interno grave, entre em contato com o administrador do site.")
-
-    console.log("[backend] Produtos recebidos: ", data.products)
-    
-    var productsINFO = []
-    var outOfStock = {
-      label: "Produtos sem estoque",
-      options: []
-    }
-
-    for (var i = 0; i < data.products.length; i++) {
-      var product = data.products[i]
-
-      if (product.qtd_disponivel === 0)
-        outOfStock.options.push({ value: product.id, label: product.nome, productID: product.id, available: product.qtd_disponivel, disabled: true })
-      else
-      productsINFO.push({ 
-        productID: product.id,
-        label: product.nome, 
-        available: product.qtd_disponivel, 
+  async function fetchProducts() {
+    try {
+      const { data } = await api.get('/api/produto'); // Alterado para '/api/produto'
+      if (!data.status) return alert('Erro ao buscar produtos.');
+      const products = data.produtos.map((product) => ({
         value: product.id,
-        price: product.revenda 
-      })
+        label: product.nome,
+        ...product,
+      }));
+      setProductOptions(products);
+    } catch (error) {
+      console.error(error);
+      alert('Erro interno ao buscar produtos.');
+    }
+  }
+
+  // Função para carregar as obras disponíveis
+  async function fetchObras() {
+    try {
+      const { data } = await api.get('/api/obras'); // Alterado para '/api/obras' para pegar a lista de obras
+      if (!data.status) return alert('Erro ao buscar obras.');
+      const obras = data.obras.map((obra) => ({
+        value: obra.id,
+        label: obra.nome,
+      }));
+      setObraOptions(obras);
+    } catch (error) {
+      console.error(error);
+      alert('Erro interno ao buscar obras.');
+    }
+  }
+
+  function handleProductSelect(option) {
+    setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
+  }
+
+  function handleObraSelect(option) {
+    setObraId(option ? option.value : null); // Atualiza o ID da obra selecionada
+  }
+
+  function addProductToInvoice(quantity, unitPrice) {
+    if (!currentProduct || !quantity || !unitPrice) {
+      setMsg([false, 'Preencha todos os campos antes de adicionar.']);
+      return;
     }
 
+    const totalValue = Number(quantity) * Number(unitPrice);
 
+    setSelectedItems((prev) => [
+      ...prev,
+      {
+        ...currentProduct,
+        quantity: Number(quantity),
+        unitPrice: Number(unitPrice),
+        totalValue: Number(totalValue),
+      },
+    ]);
 
-    setProductOptions([...productsINFO, { ...outOfStock }])
+    setCurrentProduct(null);
+    setMsg([true, 'Produto adicionado com sucesso.']);
   }
 
-  function updateSubTotal() {
-    var subtotal = 0
-    for (var i = 0; i < selectedProducts.length; i++) {
-      subtotal += Number(selectedProducts[i].price)*Number(selectedProducts[i].amount)
+  function removeProductFromInvoice(id) {
+    setSelectedItems((prev) => prev.filter((item) => item.value !== id));
+  }
+
+  function calculateTotal() {
+    return selectedItems.reduce((acc, item) => acc + item.totalValue, 0).toFixed(2);
+  }
+
+  async function saveInvoice() {
+    if (!invoiceNumber) {
+      setMsg([false, 'Digite o número da nota fiscal.']);
+      return;
     }
-    setSubTotal(subtotal)
-  }
-  function handleProductSelect(options) {
-    setCurrentProduct(options)
-    console.log("Produto atual: ", options)
-  }
-  function handleClientSelect(options) {
-    setCurrentClient(options)
 
-    console.log("Cliente atual: ", options)
-  }
+    if (!obraId) {
+      setMsg([false, 'Selecione uma obra.']);
+      return;
+    }
 
-  function validateInput(element) {
-    if (currentProduct) {
-      const limiteValue = currentProduct.available
-      var value = String(element.value)
-  
-      if (value > limiteValue) {
-        element.value = value.slice(0, value.length-1)
+    if (selectedItems.length === 0) {
+      setMsg([false, 'Adicione pelo menos um produto.']);
+      return;
+    }
+
+    try {
+      // Payload com os dados para enviar ao backend
+      const payload = {
+        numero: invoiceNumber,
+        obra_id: obraId,
+        itens: selectedItems.map(item => ({
+          produto_id: item.value,  // ID do produto
+          quantidade: item.quantity, // Quantidade do produto
+          valor_unitario: item.unitPrice, // Preço unitário do produto
+          valor_total: item.totalValue // Total (quantidade * valor unitário)
+        }))
+      };
+
+      console.log('Payload enviado:', payload);  // Verifique o payload antes da requisição
+
+      const { data } = await api.post('/api/notas-fiscais', payload);
+
+      console.log('Resposta da API:', data);  // Verifique a resposta da API
+
+      if (data.status) {
+        setMsg([true, 'Nota fiscal salva com sucesso!']);
+        setInvoiceNumber('');
+        setSelectedItems([]);
       } else {
-        for (var i = 0; i < value.length; i++) {
-          var p = value[i]
-          if (p != "1" && p != "2" && p != "3" && p != "4" && p != "5" && p != "6" && p != "7" && p != "8" && p != "9" && p != "0")
-            element.value = value.slice(0, value.length-1)
-        }
+        setMsg([false, 'Erro ao salvar nota fiscal.']);
       }
-
-    } else element.value = 1
-  }
-  function validateInputDiscount(element) {
-    const limiteValue = subTotal
-    var value = String(element.value)
-
-    if (Number(value) > limiteValue) {
-      value = value.slice(0, value.length-1)
-    } else {
-      for (var i = 0; i < value.length; i++) {
-        var p = value[i]
-        if (p != "1" && p != "2" && p != "3" && p != "4" && p != "5" && p != "6" && p != "7" && p != "8" && p != "9" && p != "0" && p != ".")
-          value = value.slice(0, value.length-1)
-      }
-    }
-    element.value = value
-    setDiscount(Number(value).toFixed(2))
-  }
-
-  function addProduct() {
-    if (currentProduct) {
-      var amount = document.querySelector("#amount").value
-
-      if (!currentClient) {
-        setMsg([false, "Nenhum cliente selecionado"])
-      } else if (amount > currentProduct.available || amount <= 0) {
-        setMsg([false, "Quantidade de produtos inválido"])
-      } else {
-        console.log("Atual: ", currentProduct, currentClient)
-        setSelectedProducts([...selectedProducts, { 
-          product: currentProduct.label,
-          amount: amount,
-          price: currentProduct.price,
-          id: currentProduct.productID,
-          clientID: currentClient.clientID,
-        }])
-
-        var newAvailableAmount = []
-
-        for (var i = 0; i < productOptions.length; i++) {
-          var loopPos = {...productOptions[i]}
-
-          if (loopPos.productID === currentProduct.productID)
-            loopPos.available = Number(currentProduct.available) - Number(amount)
-          
-          newAvailableAmount.push({ ...loopPos })
-        }
-
-        setProductOptions([ ...newAvailableAmount ])   
-        
-        // Clear options selected
-        if (!disabledClient) setDisabledClient(true)
-
-        document.querySelector("#amount").value = "1"
-        setCurrentProduct(null)
-
-        setMsg([1, "Produto selecionado com sucesso"])
-
-      }
-    } else {
-      setMsg([false, "Nenhum produto selecionado"])
+    } catch (error) {
+      console.error('Erro na requisição:', error);  // Mostra o erro completo no console
+      setMsg([false, 'Erro interno ao salvar nota fiscal.']);
     }
   }
-
-  function finishSale() {
-    if (selectedProducts.length > 0) {
-      setNextScreen(true)
-    } else 
-      setMsg([false, "Selecione algum produto para poder finalizar a venda."])
-  }
-
-  function deleteCard(element) {
-    if (element) {
-      var id = element.value
-
-      var newSelectedValues = selectedProducts
-
-      for (var i = 0; i < newSelectedValues.length; i++)
-        if (id == selectedProducts[i].id) {
-          var updateAvailableProducts = []
-          for (var a = 0; a < productOptions.length; a++) {
-            var product = productOptions[a]
-            if (product.productID == Number(id)) {
-              product.available += Number(selectedProducts[i].amount)
-            }
-            updateAvailableProducts.push(product)
-          }
-
-          newSelectedValues.splice(i, 1)
-          setSelectedProducts([...newSelectedValues])
-          break
-        }
-    }  
-  }
-
-  // Estrutura para as opções do select
-  const format = (product) =>
-    <div className="select-option-amount">
-      <div>{product.label}</div>
-      <div className="select-amount-option">{product.available}</div>
-    </div>
-  
 
   return (
-    nextScreen 
-    ? <FinalizeSale allPurchases={selectedProducts} totalPrice={subTotal} discount={discount} state={setNextScreen} />
-    :
-    <div className="w-100">
-      <div className="grid-container">
-        
+      <div className="invoice-container">
+        <div className="invoice-left">
+          <div className="card">
+            <h2>Lançamento de Nota Fiscal</h2>
 
-        <div className="content-sale">
-          <div className="container-01">
-            <div>
-              <div className="container-sale">
-                <div className="small-title text-center sale-title">Lançamento de Vendas</div>
-                <div className="one-form-input m-0">
-                  <label>Selecione um Cliente</label>
-                  <Select 
-                    placeholder="Selecione um cliente"
-                    options={clientOptions} 
-                    onChange={(element) => handleClientSelect(element)} 
-                    value={currentClient}
-                    isDisabled={disabledClient}
-                  />
-                </div>
-              </div>
+            <div className="input-group">
+              <label>Número da Nota Fiscal</label>
+              <input
+                  type="text"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="Digite o número da nota"
+              />
+            </div>
 
-              <div className="input-container-1">
-                <div className="container-sale product-select">
-                  <div className="one-form-input m-0">
-                    <label>Selecione um Produto</label>
-                    <Select 
-                      placeholder="Selecione um produto"
-                      options={productOptions} 
-                      onChange={(element) => handleProductSelect(element)}
-                      value={currentProduct}
-                      isOptionDisabled={(option) => option.disabled}
-                      formatOptionLabel={format}
+            <div className="input-group">
+              <label>Selecione uma Obra</label>
+              <Select
+                  options={obraOptions}
+                  onChange={handleObraSelect}
+                  value={obraId ? { value: obraId, label: obraOptions.find(option => option.value === obraId)?.label } : null}
+                  placeholder="Selecione uma obra..."
+              />
+            </div>
 
+            <div className="input-group">
+              <label>Selecione um Produto</label>
+              <Select
+                  options={productOptions}
+                  onChange={handleProductSelect}
+                  value={currentProduct ? { value: currentProduct.id, label: currentProduct.nome } : null}
+                  placeholder="Pesquise um produto..."
+              />
+            </div>
+
+            {currentProduct && (
+                <>
+                  <div className="input-group">
+                    <label>Quantidade</label>
+                    <input
+                        type="number"
+                        min="1"
+                        placeholder="Quantidade"
+                        onChange={(e) => setCurrentProduct({ ...currentProduct, quantity: e.target.value })}
+                        value={currentProduct.quantity || ''}
                     />
                   </div>
-                </div>
 
-                <div className="container-sale quant-input">
-                  <label>Qtd.</label>
-                  <input 
-                    type="number"
-                    min="1"
-                    id="amount"
-                    defaultValue="1"
-                    disabled = {currentProduct != null ? false : true}
-                    onChange={(element) => validateInput(element.target)}
-                    onFocus={(element) => element.target.select()}
-                    onBlur={(element) => element.target.value.length <= 0 ? element.target.value = 1 : ""}
-                  />
-                  <small><strong>MAX: { currentProduct ? currentProduct.available : 0 }</strong></small>
-                </div>  
-              </div>
-            </div>
+                  <div className="input-group">
+                    <label>Valor Unitário</label>
+                    <input
+                        type="number"
+                        placeholder="Valor Unitário"
+                        onChange={(e) => setCurrentProduct({ ...currentProduct, unitPrice: e.target.value })}
+                        value={currentProduct.unitPrice || ''}
+                    />
+                  </div>
 
-            <div className="input-container">
+                  <button className="btn-add" onClick={() => addProductToInvoice(currentProduct.quantity, currentProduct.unitPrice)}>
+                    Adicionar
+                  </button>
+                </>
+            )}
 
-              <div className="text-end">
-                <button className="btn-blue" id="send-sell" onClick={() => addProduct()}>Adicionar</button>
-              </div>
-
-                {
-                  msg[1] 
-                  ? msg[0] 
-                    ? <div className="success-msg msg-alerts text-center">{msg[1]}</div>
-                    : <div className="error-msg msg-alerts">{msg[1]}</div>
-                  : <></>
-                }
-
-            </div>
+            {msg[1] && (
+                msg[0]
+                    ? <div className="success-msg">{msg[1]}</div>
+                    : <div className="error-msg">{msg[1]}</div>
+            )}
           </div>
 
-          <div className="container-02">
-            <div className="table-sale">
+          <button className="btn-save" onClick={saveInvoice}>Salvar Nota Fiscal</button>
+        </div>
 
-              <div className="table-sale-title">
-                <div className="card-sale-produto">Produto</div>
-                <div className="card-sale-qtd">Qtd.</div>
-                <div className="card-sale-valor">Valor</div>
-                <div className="card-sale-valor-final">Valor Final</div>
-              </div>
-
-              <div className="sell-container-products">
-
-                {
-                  selectedProducts.map(item =>
-                    <div className="product-sell">
-                      <div className="card-sale-produto">{item.product}</div>
-                      <div className="card-sale-qtd">x{item.amount}</div>
-                      <div className="card-sale-valor">R${item.price}</div>
-                      <div className="card-sale-valor-final">R${(item.price*item.amount).toFixed(2)}</div>
-
-                      <div className="delete-card" onClick={(element) => deleteCard(element.target.children[1])}>
-                        <i class="fas fa-trash-alt" onClick={() => deleteCard(document.querySelector(`#S${item.id}`))}></i>
-                        <input type="hidden" id={`S${item.id}`} value={item.id} />
-                      </div>
-                    </div>
-                  )
-                }
-
-                <div style={{borderTop: 'solid 1px rgba(128, 128, 128, 0.542)'}}></div>
-              </div>
-
-            </div>
-            <div className="text-end subtotal-small container-sale">
-              <div className="text-start">
-                <label htmlFor="discount" className="label-default" >Desconto (R$)</label>
-                <input 
-                  type="string" 
-                  className="input-default" 
-                  id="discount" 
-                  defaultValue="0"
-                  placeholder={"Digite um desconto (R$)"}
-                  onFocus={(element) => element.target.select()}
-                  onBlur={(element) => element.target.value.length <= 0 ? element.target.value = 0 : ""}
-                  onChange={(element) => validateInputDiscount(element.target)}
-                />
-              </div>
-              <div>
-                <strong>Subtotal: </strong>
-                R$ { (subTotal - discount).toFixed(2) }
-              </div>
-            </div>
-            <div className="text-end">
-              <button className="btn-green" id="finally-add" onClick={() => finishSale()}>Finalizar Venda</button>
-            </div>          
+        <div className="invoice-right">
+          <div className="card">
+            <table className="products-table">
+              <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Valor Unitário</th>
+                <th>Total</th>
+                <th>Ações</th>
+              </tr>
+              </thead>
+              <tbody>
+              {selectedItems.map((item) => (
+                  <tr key={item.value}>
+                    <td>{item.label}</td>
+                    <td>{item.quantity}</td>
+                    <td>R$ {item.unitPrice.toFixed(2)}</td>
+                    <td>R$ {item.totalValue.toFixed(2)}</td>
+                    <td>
+                      <button className="btn-remove" onClick={() => removeProductFromInvoice(item.value)}>
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+              ))}
+              {selectedItems.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center' }}>Nenhum produto adicionado.</td>
+                  </tr>
+              )}
+              </tbody>
+            </table>
+            {selectedItems.length > 0 && (
+                <div className="total">
+                  <strong>Total: R$ {calculateTotal()}</strong>
+                </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-
-  )
+  );
 }

@@ -7,7 +7,7 @@ export default function FinalizeSale(props) {
   const [totalPrice, setTotalPrice] = useState(0)
   const [saleType, setSaleType] = useState(<span className="text-yellow">Pendente</span>)
   const [thing, setThing] = useState(0)
-  const [pedingValue, setPendingValue] = useState(0)
+  const [pendingValue, setPendingValue] = useState(0)
   const [isFinish, setIsFinish] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -39,18 +39,24 @@ export default function FinalizeSale(props) {
   }
 
   async function finaleSale () {
-    console.log(props)
+    console.log("Dados enviados para criação da venda:", props); // Log dos dados de venda
+
     setLoading(true)
     var { data } = await api.post("/create-sale", {
       allPurchases: props.allPurchases,
       totalPrice: props.totalPrice,
-      pedingValue: pedingValue,
+      pendingValue: pendingValue,
       discount: props.discount,
     })
 
+    console.log("Resposta da criação da venda:", data); // Log da resposta
+
     setLoading(false)
 
-    if (!data.status) return alert("Erro interno ao criar venda.")
+    if (!data.status) {
+      console.log("Erro ao criar venda:", data); // Log de erro
+      return alert("Erro interno ao criar venda.")
+    }
 
     setIsFinish(true)
   }
@@ -86,7 +92,7 @@ export default function FinalizeSale(props) {
         <div className="finalize-informations">
           <div>Troco: R$ {thing}</div>
           <div>Situação: {saleType}</div>
-          <div>Valor Pendente: R$ {pedingValue}</div>
+          <div>Valor Pendente: R$ {pendingValue}</div>
         </div>
         
         {

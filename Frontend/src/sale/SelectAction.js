@@ -11,7 +11,7 @@ export default function SelectAction() {
       <div className="cards-select-action">
 
         <Link to="/select-action/venda" className="no-href-decoration">
-          <div className="card-select-action ml-5">Vender <i class="fas fa-receipt"></i></div>
+          <div className="card-select-action ml-5">Cadastrar NF <i class="fas fa-receipt"></i></div>
         </Link>
 
         <Link to="/select-action/receber" className="no-href-decoration">

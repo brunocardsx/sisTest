@@ -1,64 +1,207 @@
-body {
-  margin: 0;
-}
-.no-haref-decoration {
-  text-decoration: none;
-  color: unset;
-}
-.dashboard-content {
-  width: 100%;
-  transform: scale(0.9);
-}
-.cards-dashboard {
-  display: flex;
-  text-align: center;
-  flex-direction: column;
-}
-#dashboard {
-  display: flex;
-}
-.cards-dashboard > div {
-  display: grid;
-  grid-template-columns: 33.3% 33.3% 33.3%;
-  color: #444;
-  justify-content: center; 
-  margin-top: 50px;
-}
-.dashboard-card-center {
-  text-align: -webkit-center;
-}
-.card-dashboard {
-  width: 300px;
-  height: 200px;
-  text-align: center;
-  border-radius: 10px;
-  background: white;
-  transition: 0.3s;
-  cursor: pointer;
-  font-size: 2.3rem;
-  font-weight: 800;
-  line-height: 200px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.507);
-  color: #001b5e;
-}
-.card-dashboard:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.507);
+/* Reset básico para evitar zoom quebrar layout */
+html {
+  font-size: 16px;
 }
 
-.big-title {
-  font-family: inherit;
-  font-weight: 900;
-  font-size: 3.5rem;
-  margin-top: 100px;
-  font-family: 'PT Sans', sans-serif;
+body {
   margin: 0;
-  padding: 25px;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container principal */
+.w-100 {
+  width: 100%;
+  padding: 20px;
+  background-color: #f8f9fc;
+}
+
+/* Conteúdo do dashboard */
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Título */
+.big-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #4e73df;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+/* Cards container */
+.cards-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Estilo dos cards */
+.card-dashboard {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #333;
+  transition: 0.3s;
+}
+
+.card-dashboard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card-dashboard i {
+  font-size: 2rem;
+  margin-top: 10px;
+  color: #4e73df;
+}
+
+/* Links dos cards */
+.no-haref-decoration {
+  text-decoration: none;
 }
 
 .href-dashboard-card {
-  width: calc(100% / 3);
-  text-align: -webkit-center;
-  display: block;
-  width: min-content;
+  color: inherit;
+}
+
+/* Container do gráfico */
+.grafico-container {
+  width: 100%;
+  max-width: 900px;
+  padding: 0 20px;
+}
+
+.grafico-container h4 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4e73df;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Wrapper do gráfico */
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Pode aumentar ou diminuir */
+  height: 400px; /* Define uma altura fixa */
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  margin-left: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Estilo do filtro de mês */
+.select-mes {
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.select-mes:hover,
+.select-mes:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.2);
+}
+
+/* Container flex para o gráfico e total de vendas */
+.grafico-total-container {
+  display: flex;
+  justify-content: space-between; /* Espaço entre o gráfico e o total */
+  align-items: flex-start; /* Alinha os itens ao topo */
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Estilo do total de vendas */
+.total-vendas {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4e73df;
+  margin-left: 20px; /* Espaço entre o gráfico e o total */
+  width: 35%; /* O total ocupa 35% da largura */
+}
+
+.total-vendas h3 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.total-vendas p {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #20B2AA;
+}
+
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .big-title {
+    font-size: 2rem;
+  }
+
+  .grafico-container h4 {
+    font-size: 1.3rem;
+  }
+
+  .card-dashboard {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .card-dashboard i {
+    font-size: 1.5rem;
+  }
+
+  /* Ajuste para o gráfico e total de vendas na versão mobile */
+  .grafico-total-container {
+    flex-direction: column; /* Empilha os itens na versão mobile */
+    align-items: center; /* Centraliza os itens */
+  }
+
+  .total-vendas {
+    width: 90%; /* Ajusta a largura na versão mobile */
+    margin-left: 0;
+    margin-top: 20px; /* Adiciona um pequeno espaço em cima */
+  }
+
+  .chart-wrapper {
+    width: 100%;
+    max-width: 400px; /* Aumenta o gráfico na versão mobile */
+  }
 }

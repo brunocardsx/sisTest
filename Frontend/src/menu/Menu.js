@@ -6,17 +6,6 @@ export default function Menu () {
   const url = useLocation()
   const [allowMenu, setAllowMenu] = useState(false)
 
-  useEffect(() => {
-    if (allowMenu)
-      document.querySelector(".open-menu").addEventListener('click', () => {
-        var menu = document.querySelector(".menu-container")
-        if (getComputedStyle(menu, null).marginLeft === "0px") {
-          menu.style.marginLeft = "-25vw"
-        } else {
-          menu.style.marginLeft = "0px"
-        }
-      })
-  }, [allowMenu])
 
   useEffect(() => {
     if (url.pathname.indexOf("login") !== -1)
@@ -35,17 +24,16 @@ export default function Menu () {
     allowMenu ?
       
       <div className="menu-container">
-        <i class="fas fa-bars open-menu"></i>
 
         <div className="menu-content">
           <div className="text-center logo-container mt-4"> 
             <Link to={"/dashboard"}>
-              <img src={`${require("../images/LOGO.png").default}`} width="65%"/> 
+              <img src={`${require("../images/LOGO.png").default}`} width="65%"/>
             </Link>
           </div>
 
           <Link className="no-href-decoration" to="/dashboard">
-            <div className="option-menu" id="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+            <div className="option-menu" id="dashboard"><i className="fa-solid fa-house"></i> Inicio</div>
           </Link>
 
           <Link className="no-href-decoration" to="/select-action">
