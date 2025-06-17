@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "/Backend/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "Backend/**"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/Backend/index.js"
+    }
+  ]
+}
