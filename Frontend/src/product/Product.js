@@ -29,7 +29,7 @@ export default function Client() {
       var errorMsg = ""
       
       if (formState['name'].length < 2)
-        errorMsg = "Por favor, preencha com o nome do produto!"
+        errorMsg = "Por favor, insira o número da nota fiscal!"
       else if (formState['marca'].length === 0)
         errorMsg = "Por favor, adicione a marca do produto"
       else if (formState['custo'] <= 0)

@@ -1,50 +1,152 @@
+/* menu.css ou layout.css */
+
+/* Estilos do Menu Lateral */
 .menu-container {
-  width: 20vw;
+  /* ===================== CORREÇÃO ===================== */
+  /* A largura agora usa clamp(MIN, IDEAL, MAX) para ser responsiva e segura. */
+  /* Isso garante que a largura seja no mínimo 220px, no máximo 300px, e tente ser 20vw. */
+  width: clamp(220px, 20vw, 300px);
+  /* ==================================================== */
+
   height: 100vh;
-  top: 0%;
-  left: 0%;
+  position: fixed;
+  top: 0;
+  left: 0;
   background-color: #12475b;
-  position: relative;
-  transition: 0.5s;
+  z-index: 1000;
+  overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
-.menu-content-container {
-  display: flex;
+.menu-content {
+  padding-top: 20px;
 }
 
+.logo-container {
+  margin-bottom: 25px;
+  text-align: center; /* Centraliza o logo dentro do container */
+}
+
+.logo-container img {
+  max-width: 65%;
+  height: auto;
+  display: inline-block; /* Garante que o text-align funcione */
+}
 
 .option-menu {
-  font-family: 'Montserrat';
-  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  padding: 13px 20px;
-  margin: 10px 0;
-  color: #fff;
+  padding: 14px 25px;
+  margin: 8px 0;
+  color: #e0e0e0;
   text-align: left;
   width: 100%;
   box-sizing: border-box;
-  transition: 0.3s ease; /* Transição suave */
-  font-size: 15px;
+  transition: background-color 0.25s ease, color 0.25s ease, padding-left 0.25s ease;
+  font-size: 0.95rem;
+  border-left: 4px solid transparent;
 }
 
 .option-menu i {
-  margin-right: 10px;
-  opacity: 0.5;
-  transition: 0.3s ease; /* Suaviza a mudança de opacidade */
+  margin-right: 12px;
+  font-size: 1.1em;
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
+  width: 20px;
+  text-align: center;
 }
 
 .option-menu:hover {
-  background-color: #0e3a4c !important; /* Um tom um pouco mais escuro no hover */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Sombreamento */
+  background-color: #0e3a4c;
+  color: #ffffff;
+  padding-left: 29px;
+  border-left-color: #3498db;
   cursor: pointer;
-  transform: scale(1.02); /* Cresce levemente */
 }
 
-.option-menu:hover i {
-  opacity: 1; /* Ícone fica totalmente visível */
+.option-menu.active {
+  background-color: #0c303f;
+  color: #ffffff;
+  font-weight: 600;
+  border-left-color: #4A90E2;
 }
 
-.w-100 {
-  width: 100%;
+.option-menu:hover i,
+.option-menu.active i {
+  opacity: 1;
+}
+
+.no-href-decoration {
+  text-decoration: none;
+}
+
+/* ESTILOS PARA A ÁREA DE CONTEÚDO PRINCIPAL (ADJACENTE AO MENU) */
+.main-content-area {
+  /* ============================ CORREÇÃO PRINCIPAL ============================ */
+  /* A margem à esquerda e a largura do conteúdo DEVEM usar exatamente o mesmo
+     cálculo da largura do menu para criar o espaço correto e evitar sobreposição. */
+  margin-left: clamp(220px, 20vw, 300px);
+  width: calc(100% - clamp(220px, 20vw, 300px));
+  /* ============================================================================ */
+
+  padding: 0;
+  box-sizing: border-box;
+  position: relative; /* Importante para o contexto de empilhamento */
+  overflow-x: hidden; /* Previne scroll horizontal por erros de arredondamento */
+}
+
+
+/* --- Responsividade para o Menu e Layout Principal --- */
+@media (max-width: 992px) { /* Tablets */
+  .menu-container {
+    /* Em telas menores, a largura se torna fixa */
+    width: 220px;
+  }
+  .main-content-area {
+    /* A margem e a largura do conteúdo devem corresponder à nova largura fixa do menu */
+    margin-left: 220px;
+    width: calc(100% - 220px);
+  }
+  .option-menu {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+  .option-menu i { font-size: 1em; }
+}
+
+@media (max-width: 768px) { /* Mobile */
+  /* Para simplificar, vamos manter a lógica de um menu mais estreito.
+     Se você fosse implementar um menu "hambúrguer", o menu teria 'display: none'
+     ou 'transform: translateX(-100%)' e o .main-content-area teria 'margin-left: 0'. */
+  .menu-container {
+    width: 60px; /* Menu só com ícones */
+  }
+
+  /* Esconde o texto dos itens de menu, deixando apenas os ícones */
+  /* Você precisará garantir que o ícone e o span estejam em elementos separados no seu HTML/JSX */
+  .menu-container .option-menu span {
+    display: none;
+  }
+  .menu-container .logo-container {
+    display: none; /* Esconde o logo em telas pequenas para economizar espaço */
+  }
+  .option-menu {
+    justify-content: center; /* Centraliza o ícone quando o texto some */
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .option-menu i {
+    margin-right: 0; /* Remove a margem do ícone */
+  }
+  .option-menu:hover {
+    padding-left: 12px; /* Remove o efeito de indentação */
+  }
+
+  .main-content-area {
+    /* Adapta ao menu de ícones */
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
 }

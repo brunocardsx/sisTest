@@ -1,32 +1,27 @@
+// models/Obra.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/database');
 
 const Obra = sequelize.define('Obra', {
     nome: {
         type: DataTypes.STRING,
-        allowNull: false
-    },
-    descricao: {
-        type: DataTypes.STRING
-    },
-    cliente_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    data_inicio: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
-    data_fim: {
-        type: DataTypes.DATE
+        allowNull: false,
+        unique: true
     }
 }, {
     tableName: 'obras',
     timestamps: false
 });
 
-module.exports = Obra;
+// --- CORREÇÃO AQUI ---
+// Defina o método associate
+Obra.associate = function(models) {
+    // Uma Obra pode ter várias Notas Fiscais
+    // Esta é a contraparte da associação NotaFiscal.belongsTo(models.Obra)
+    Obra.hasMany(models.NotaFiscal, {
+        foreignKey: 'obra_id', // A chave estrangeira na tabela 'nota_fiscal' que referencia 'obras'
+        as: 'notasFiscais'    // Alias opcional
+    });
+};
 
-sequelize.sync({ force: false }) // Sincroniza sem apagar a tabela
-    .then(() => console.log("Tabela 'obras' sincronizada com sucesso."))
-    .catch((error) => console.error("Erro ao sincronizar tabela 'obras':", error));
+module.exports = Obra;

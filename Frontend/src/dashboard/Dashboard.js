@@ -9,199 +9,237 @@ import './dashboard.css';
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export default function Dashboard() {
-  const [dados, setDados] = useState([]);
+  const [dadosGrafico, setDadosGrafico] = useState([]);
   const [mesSelecionado, setMesSelecionado] = useState('todos');
-  const [obras, setObras] = useState([]); // Para armazenar as obras disponíveis
-  const [obraSelecionada, setObraSelecionada] = useState(null); // Para armazenar a obra selecionada
+  const [obras, setObras] = useState([]);
+  const [obraSelecionada, setObraSelecionada] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     fetchObras();
-    fetchMonthlyInvoices();
-  }, [obraSelecionada, mesSelecionado]); // Agora, os dados serão recarregados sempre que a obra ou o mês mudarem
+  }, []);
+
+  useEffect(() => {
+    if (obraSelecionada) {
+      fetchMonthlyInvoices();
+    } else {
+      setDadosGrafico([]);
+    }
+  }, [obraSelecionada]);
 
   const fetchObras = async () => {
     try {
-      const { data } = await api.get('/api/obras/obras'); // Supondo que você tenha um endpoint para buscar obras
+      setErrorMsg('');
+      const { data } = await api.get('/api/obras');
       if (data.status) {
         setObras(data.obras);
       } else {
-        alert("Erro ao buscar obras.");
+        setErrorMsg("Erro ao buscar obras: " + (data.message || ''));
       }
     } catch (error) {
-      console.error(error);
-      alert("Erro ao buscar obras.");
+      console.error("Erro API Obras:", error);
+      setErrorMsg("Falha ao conectar com o servidor para buscar obras.");
     }
   };
 
   const fetchMonthlyInvoices = async () => {
-    if (!obraSelecionada) {
-      return; // Se nenhuma obra estiver selecionada, não faz sentido buscar as notas fiscais
-    }
-
+    if (!obraSelecionada) return;
+    setLoading(true);
+    setErrorMsg('');
     try {
-      const { data } = await api.get(`/notas-fiscais/${obraSelecionada}/mensal`, { params: { mes: mesSelecionado } });
-      if (data.status) {
-        setDados(data.data);
+      const url = `/api/notas-fiscais/mensal/${obraSelecionada}`;
+      const { data } = await api.get(url);
+
+      if (data.status && Array.isArray(data.data)) {
+        const dadosCorrigidos = data.data.map(item => ({
+          ...item,
+          total_compras: parseFloat(item.total_compras) || 0
+        }));
+        setDadosGrafico(dadosCorrigidos);
+        if (dadosCorrigidos.length === 0) {
+          setErrorMsg("Nenhum dado de compra encontrado para esta obra.");
+        }
       } else {
-        alert("Erro ao buscar dados do gráfico.");
+        console.warn("Dados não retornados ou formato inesperado:", data);
+        setDadosGrafico([]);
+        setErrorMsg(data.message || "Nenhum dado retornado para a obra selecionada.");
       }
     } catch (error) {
-      console.error(error);
-      alert("Erro ao buscar dados do gráfico.");
+      console.error("Erro API Notas:", error);
+      setDadosGrafico([]);
+      setErrorMsg(error.response?.data?.message || "Falha ao buscar dados de compras.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleObraChange = (event) => {
     setObraSelecionada(event.target.value);
+    setMesSelecionado('todos');
+    setErrorMsg('');
   };
 
-  const corPorMes = {
-    Jan: '#FF6384',
-    Fev: '#36A2EB',
-    Mar: '#FFCE56',
-    Abr: '#4BC0C0',
-    Mai: '#9966FF',
-    Jun: '#F08080',
-    Jul: '#8FBC8F',
-    Ago: '#DA70D6',
-    Set: '#FFA07A',
-    Out: '#20B2AA',
-    Nov: '#778899',
-    Dez: '#D2691E'
+  const handleMesChange = (event) => {
+    setMesSelecionado(event.target.value);
   };
 
-  // Filtrando os dados de acordo com o mês selecionado
+  const coresGrafico = [
+    '#4A90E2', '#F5A623', '#50E3C2', '#BD10E0', '#7ED321',
+    '#E350A2', '#23C9F5', '#F8E71C', '#E06110', '#2178D3',
+    '#D0021B', '#417505'
+  ];
+
   const dadosFiltrados = mesSelecionado === 'todos'
-      ? dados
-      : dados.filter(item => item.mes.startsWith(mesSelecionado));
+      ? dadosGrafico
+      : dadosGrafico.filter(item => item.mes === mesSelecionado);
 
-  const totalVendas = dadosFiltrados.reduce((acc, item) => acc + item.total_compras, 0);
+  const totalGastos = dadosFiltrados.reduce((acc, item) => acc + item.total_compras, 0);
 
-  const data = {
+  const dataGraficoPizza = {
     labels: dadosFiltrados.map(item => item.mes),
     datasets: [
       {
-        label: 'Compras no mês',
+        label: 'Gastos no Mês',
         data: dadosFiltrados.map(item => item.total_compras),
-        backgroundColor: dadosFiltrados.map(item => corPorMes[item.mes.split('/')[0]]),
-        borderColor: '#fff',
-        borderWidth: 2,
+        backgroundColor: dadosFiltrados.map((item, index) => coresGrafico[index % coresGrafico.length]),
+        borderColor: '#FFFFFF',
+        borderWidth: 3,
+        hoverOffset: 8
       }
     ]
   };
 
-  const options = {
+  const optionsGraficoPizza = {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
       animateScale: true,
-      animateRotate: true,
+      animateRotate: true
     },
     plugins: {
       legend: {
         position: 'bottom',
         labels: {
-          color: '#4e73df',
-          font: {
-            size: 14,
+          color: '#4B5563',
+          font: { size: 13, family: "'Inter', sans-serif" },
+          padding: 25,
+          usePointStyle: true,
+          pointStyle: 'rectRounded'
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        titleFont: { size: 14, family: "'Inter', sans-serif" },
+        bodyFont: { size: 13, family: "'Inter', sans-serif" },
+        padding: 10,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed !== null) {
+              label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed);
+            }
+            return label;
           }
         }
       },
       datalabels: {
-        color: '#fff',
+        color: '#FFFFFF',
         font: {
           weight: 'bold',
-          size: 8,
+          size: 13,
+          family: "'Inter', sans-serif"
         },
         formatter: (value) => {
-          return `R$ ${value.toFixed(2).replace('.', ',')}`;
+          return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value);
         },
         anchor: 'center',
         align: 'center',
+        display: function(context) {
+          return (context.dataset.data[context.dataIndex] / totalGastos) > 0.05;
+        }
       }
     }
   };
 
+  const mesesDisponiveis = [...new Set(dadosGrafico.map(item => item.mes))];
+
+  // ================== ALTERAÇÃO PRINCIPAL AQUI ==================
+  // Definição dos cards de navegação, com "Produto" e "Estoque" removidos.
+  const navCards = [
+    { to: "/select-action/venda", label: "Cadastrar Gasto", icon: "fas fa-plus-circle" },
+    { to: "/obras", label: "Obras", icon: "fas fa-hard-hat" },
+    { to: "/notaFiscal", label: "Nota Fiscal", icon: "fas fa-file-invoice-dollar" },
+  ];
+  // ===============================================================
+
   return (
-      <div className="w-100">
-        <div className="dashboard-content">
-          <h1 className="big-title">Sistema de Gestão</h1>
+      <div className="dashboard-container-main">
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">Sistema de Gestão</h1>
+        </div>
 
-          <div className="cards-dashboard">
-            <div className="dashboard-card-center">
-              <Link to="/select-action" className="no-href-decoration href-dashboard-card">
-                <div className="card-dashboard">Cadastrar Gasto <i className="fas fa-hand-holding-usd"></i></div>
-              </Link>
-            </div>
-
-            <div className="dashboard-card-center">
-              <Link to="/cliente" className="no-href-decoration href-dashboard-card">
-                <div className="card-dashboard">Cliente <i className="fas fa-users"></i></div>
-              </Link>
-            </div>
-
-            <div className="dashboard-card-center">
-              <Link to="/produto" className="no-href-decoration href-dashboard-card">
-                <div className="card-dashboard">Produto <i className="fas fa-store"></i></div>
-              </Link>
-            </div>
-
-            <div className="dashboard-card-center">
-              <Link to="/produto" className="no-href-decoration href-dashboard-card" style={{ marginTop: "20%" }}>
-                <div className="card-dashboard">Contas <i className="fas fa-minus-circle"></i></div>
-              </Link>
-            </div>
-
-            <div className="dashboard-card-center">
-              <Link to="/estoque" className="no-href-decoration href-dashboard-card" style={{ marginTop: "20%" }}>
-                <div className="card-dashboard">Estoque <i className="fas fa-boxes"></i></div>
-              </Link>
-            </div>
+        <div className="dashboard-content-wrapper">
+          <div className="dashboard-cards-grid">
+            {navCards.map(card => (
+                <Link to={card.to} className="dashboard-nav-card-link" key={card.label}>
+                  <div className="dashboard-nav-card">
+                    <i className={card.icon}></i>
+                    <span>{card.label}</span>
+                  </div>
+                </Link>
+            ))}
           </div>
 
-          <div className="grafico-container">
-            <h4>Distribuição de Compras por Mês</h4>
+          <div className="dashboard-chart-section">
+            <h2 className="section-title">Distribuição de Compras por Mês</h2>
 
-            {/* Seleção da obra */}
-            <div className="select-obra-container">
-              <label>Selecione a Obra</label>
-              <select
-                  value={obraSelecionada}
-                  onChange={handleObraChange}
-                  className="select-obra"
-              >
-                <option value="">Selecione uma obra</option>
-                {obras.map((obra) => (
-                    <option key={obra.id} value={obra.id}>
-                      {obra.nome}
-                    </option>
-                ))}
-              </select>
+            <div className="filters-container">
+              <div className="filter-group">
+                <label htmlFor="obra-select">Obra:</label>
+                <select id="obra-select" className="dashboard-select" value={obraSelecionada} onChange={handleObraChange}>
+                  <option value="">Selecione uma obra</option>
+                  {obras.map((obra) => (
+                      <option key={obra.id} value={obra.id}>{obra.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="mes-select">Mês:</label>
+                <select id="mes-select" className="dashboard-select" value={mesSelecionado} onChange={handleMesChange} disabled={!obraSelecionada || loading || mesesDisponiveis.length === 0}>
+                  <option value="todos">Todos os meses</option>
+                  {mesesDisponiveis.map(mes => (
+                      <option key={mes} value={mes}>{mes}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* Seleção do mês */}
-            <select
-                value={mesSelecionado}
-                onChange={(e) => setMesSelecionado(e.target.value)}
-                className="select-mes"
-            >
-              <option value="todos">Todos os meses</option>
-              {dados.map(item => (
-                  <option key={item.mes} value={item.mes.split('/')[0]}>
-                    {item.mes}
-                  </option>
-              ))}
-            </select>
+            {errorMsg && <p className="dashboard-error-message">{errorMsg}</p>}
 
-            <div className="grafico-total-container">
-              <div className="chart-wrapper" style={{ height: '400px' }}>
-                <Pie data={data} options={options} />
+            <div className="chart-and-total-container">
+              <div className="chart-wrapper-dashboard">
+                {loading ? (
+                    <p className="loading-text">Carregando dados do gráfico...</p>
+                ) : dadosGrafico.length > 0 && dadosFiltrados.length > 0 ? (
+                    <Pie data={dataGraficoPizza} options={optionsGraficoPizza} />
+                ) : !loading && obraSelecionada && !errorMsg ? (
+                    <p className="no-data-text">Nenhum dado de compra para exibir.</p>
+                ) : !loading && !obraSelecionada ? (
+                    <p className="no-data-text">Selecione uma obra para visualizar os gastos.</p>
+                ) : null}
               </div>
 
-              <div className="total-vendas">
-                <h3>Total dos Gastos</h3>
-                <p>R$ {totalVendas.toFixed(2).replace('.', ',')}</p>
-              </div>
+              {dadosGrafico.length > 0 && dadosFiltrados.length > 0 && !loading && (
+                  <div className="total-gastos-card">
+                    <h3>Total dos Gastos</h3>
+                    <p>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGastos)}</p>
+                  </div>
+              )}
             </div>
           </div>
         </div>

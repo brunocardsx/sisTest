@@ -1,118 +1,282 @@
-.container-form {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+/* ========================================================== */
+/*           CSS Simplificado para Consulta de NF             */
+/* ========================================================== */
 
-.small-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #3457d5;
-    margin-bottom: 30px;
-}
-
-.one-form-input {
+/* Estilos Globais da Página (como em sale.js) */
+.query-nf-page-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
+    align-items: center; /* <<< NOVO: Centraliza os cards na página */
+    gap: 2rem;
+    padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
-.one-form-input label {
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #333;
-}
-
-.input-default {
-    padding: 12px;
-    border: 1px solid #ccc;
+/* Card Principal (unifica o estilo) */
+.query-nf-card {
+    background: #fff;
     border-radius: 8px;
-    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    width: 100%; /* <<< NOVO: Garante que o card ocupe o espaço */
+    max-width: 800px; /* <<< NOVO: Define uma largura máxima para os cards */
 }
 
-.btn-blue {
-    background-color: #3457d5;
-    color: white;
-    padding: 12px 24px;
+.query-nf-card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #E5E7EB;
+    text-align: center; /* <<< NOVO: Centraliza o título */
+}
+
+/* --- NOVO: Container para centralizar o formulário --- */
+.form-content-wrapper {
+    max-width: 500px; /* Limita a largura do conteúdo do formulário */
+    margin: 0 auto;   /* Centraliza o wrapper dentro do card */
+}
+
+
+/* Formulários */
+.query-nf-form-group {
+    margin-bottom: 1.25rem; /* Aumenta um pouco o espaçamento */
+}
+
+.query-nf-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4B5563;
+}
+
+.query-nf-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box; /* Garante que padding não afete a largura */
+}
+
+.query-nf-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Formulário de data em linha */
+.query-nf-date-form {
+    display: flex;
+    gap: 1.5rem; /* Aumenta o espaçamento */
+    align-items: flex-end;
+}
+
+.query-nf-date-form .query-nf-form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Botões */
+.query-nf-btn, .query-nf-btn-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
     border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s;
+    width: 100%; /* <<< NOVO: Faz o botão ocupar a largura do wrapper */
 }
 
-.btn-blue:hover {
-    background-color: #2345b5;
+/* Restante do CSS permanece o mesmo... */
+.query-nf-btn {
+    background-color: #2563EB;
+    color: white;
+}
+.query-nf-btn:hover:not(:disabled) {
+    background-color: #1D4ED8;
 }
 
-.error-msg {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border-radius: 8px;
-    font-weight: 600;
+.query-nf-btn-delete {
+    background-color: #EF4444;
+    color: white;
+    margin-top: 1.5rem; /* Espaço do botão nos detalhes */
+}
+.query-nf-btn-delete:hover:not(:disabled) {
+    background-color: #DC2626;
 }
 
-.success-msg {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #d4edda;
-    color: #155724;
-    border-radius: 8px;
-    font-weight: 600;
+.query-nf-btn:disabled, .query-nf-btn-delete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.nota-detalhes {
-    margin-top: 30px;
+/* Mensagens de Feedback */
+.query-nf-feedback, .query-nf-loading {
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+.query-nf-feedback.error {
+    color: #991B1B; background-color: #FEE2E2; border-color: #FCA5A5;
+}
+.query-nf-feedback.success {
+    color: #065F46; background-color: #D1FAE5; border-color: #6EE7B7;
+}
+.query-nf-feedback.info, .query-nf-loading {
+    color: #1E40AF; background-color: #DBEAFE; border-color: #93C5FD;
 }
 
-.nota-detalhes h3 {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 10px;
+/* --- Detalhes e Tabela de Resultados --- */
+.query-nf-result-details, .query-nf-list-results {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #E5E7EB;
 }
 
-.nota-detalhes p {
-    font-size: 16px;
-    margin-bottom: 20px;
-    color: #333;
+.query-nf-result-info {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
 }
 
-.nota-detalhes h4 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #222;
+.query-nf-result-info p {
+    margin: 0;
 }
 
-.products-table {
+.query-nf-items-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 1rem;
 }
 
-.products-table th, .products-table td {
-    padding: 12px;
+.query-nf-items-table th, .query-nf-items-table td {
+    padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #E5E7EB;
 }
 
-.products-table th {
-    background-color: #f1f1f1;
+.query-nf-items-table th {
+    background-color: #F9FAFB;
+    font-size: 0.75rem;
+    color: #6B7280;
+    text-transform: uppercase;
     font-weight: 600;
-    color: #333;
 }
 
-/* Responsivo */
-@media (max-width: 768px) {
-    .container-form {
-        padding: 20px;
-    }
+/* Coluna de Ações na Tabela */
+.action-col {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
 
-    .btn-blue {
-        width: 100%;
+.action-col .query-nf-btn-delete {
+    margin-top: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    width: auto; /* Permite que o botão na tabela seja menor */
+}
+
+/* --- Estilos do Modal (inalterado) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-content h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.modal-content p {
+    line-height: 1.5;
+    color: #4B5563;
+}
+
+.item-to-delete {
+    font-weight: 600;
+    background-color: #F3F4F6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 0 4px;
+}
+
+.delete-warning {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: #92400E;
+    background-color: #FEF3C7;
+    border-left: 4px solid #FBBF24;
+    border-radius: 4px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.btn-modal {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.btn-modal.cancel {
+    background-color: #fff;
+    border-color: #D1D5DB;
+}
+
+.btn-modal.danger {
+    background-color: #DC2626;
+    color: white;
+}
+
+/* --- Responsividade (inalterado) --- */
+@media (max-width: 768px) {
+    .query-nf-page-container {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+    .query-nf-card {
+        padding: 1.5rem;
+    }
+    .query-nf-date-form {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
