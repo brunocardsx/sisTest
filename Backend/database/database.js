@@ -1,34 +1,29 @@
-// Backend/models/index.js
-'use strict';
+// Backend/database/database.js
+require('dotenv').config();
 
-const fs = require('fs');
-const path = require('path');
-const sequelize = require('../database/database'); // <<< IMPORTANTE!
-const basename = path.basename(__filename);
-const db = {};
+// Objeto de configuração para o ambiente de desenvolvimento
+const development = {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: 'postgres'
+};
 
-fs
-    .readdirSync(__dirname)
-    .filter(file => {
-        return (
-            file.indexOf('.') !== 0 &&
-            file !== basename &&
-            file.slice(-3) === '.js' &&
-            file.indexOf('.test.js') === -1
-        );
-    })
-    .forEach(file => {
-        const model = require(path.join(__dirname, file))(sequelize, DataTypes); // O require mudou para passar a instância
-        db[model.name] = model;
-    });
-
-Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
+// Objeto de configuração para o ambiente de produção
+const production = {
+    use_env_variable: 'DATABASE_URL', // Diz ao Sequelize para usar a variável de ambiente
+    dialect: 'postgres',
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
     }
-});
+};
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-module.exports = db;
+// Exporta as duas configurações
+module.exports = {
+    development: development,
+    production: production
+};
