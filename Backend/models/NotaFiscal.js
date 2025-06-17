@@ -1,13 +1,9 @@
+// Backend/models/NotaFiscal.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/database');
 
 const NotaFiscal = sequelize.define('NotaFiscal', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
+    // Colunas próprias da Nota Fiscal. A 'obra_id' será criada pela associação.
     numero: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -16,28 +12,23 @@ const NotaFiscal = sequelize.define('NotaFiscal', {
     data_emissao: {
         type: DataTypes.DATE,
         allowNull: false
-    },
-    obra_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'obras',
-            key: 'id'
-        }
     }
 }, {
-    tableName: 'nota_fiscal',
+    tableName: 'notas_fiscais', // Convenção: plural e snake_case
     timestamps: false
 });
 
-NotaFiscal.associate = function(models) {
-    // Se uma NotaFiscal for deletada, todos os seus itens também serão.
+NotaFiscal.associate = (models) => {
+    // Uma NotaFiscal tem VÁRIOS Itens.
+    // O Sequelize vai adicionar a coluna 'nota_fiscal_id' na tabela 'itens_nota_fiscal'.
     NotaFiscal.hasMany(models.ItemNotaFiscal, {
         foreignKey: 'nota_fiscal_id',
         as: 'itensDaNota',
-        onDelete: 'CASCADE' // <-- ADIÇÃO CRUCIAL
+        onDelete: 'CASCADE' // Se deletar a nota, deleta os itens. Ótima escolha.
     });
 
+    // Uma NotaFiscal pertence a UMA Obra.
+    // O Sequelize vai adicionar a coluna 'obra_id' à tabela 'notas_fiscais'.
     NotaFiscal.belongsTo(models.Obra, {
         foreignKey: 'obra_id',
         as: 'obra'

@@ -1,25 +1,25 @@
 // Backend/models/index.js
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const Sequelize = require('sequelize');
-const sequelize = require('../database/database'); // Importa nossa instância central
-const basename = path.basename(__filename);
+const sequelize = require('../database/database');
+
 const db = {};
 
-fs
-    .readdirSync(__dirname)
-    .filter(file => {
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
-    })
-    .forEach(file => {
-        const model = require(path.join(__dirname, file)); // Agora o require pega o model pronto
-        db[model.name] = model;
-    });
+// Carregue cada model manualmente
+console.log('[models/index.js] Carregando models manualmente...');
+db.Produto = require('./Produto.js');
+db.Obra = require('./Obra.js');
+db.NotaFiscal = require('./NotaFiscal.js');
+db.ItemNotaFiscal = require('./ItemNotaFiscal.js');
+// Adicione todos os seus outros models aqui...
 
+console.log('[models/index.js] Models carregados:', Object.keys(db));
+
+// Executa as associações
 Object.keys(db).forEach(modelName => {
     if (db[modelName].associate) {
+        console.log(`[models/index.js] Associando modelo: ${modelName}`);
         db[modelName].associate(db);
     }
 });
@@ -27,4 +27,5 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+console.log('[models/index.js] Exportação finalizada.');
 module.exports = db;

@@ -1,16 +1,10 @@
-// models/ItemNotaFiscal.js
+// Backend/models/ItemNotaFiscal.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../database/database'); // Sua instância do Sequelize
+const sequelize = require('../database/database');
 
 const ItemNotaFiscal = sequelize.define('ItemNotaFiscal', {
-    nota_fiscal_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    produto_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
+    // Colunas que pertencem à "linha" da nota fiscal.
+    // As chaves estrangeiras 'nota_fiscal_id' e 'produto_id' são criadas pelas associações.
     quantidade: {
         type: DataTypes.INTEGER,
         allowNull: false
@@ -24,23 +18,21 @@ const ItemNotaFiscal = sequelize.define('ItemNotaFiscal', {
         allowNull: false
     }
 }, {
-    tableName: 'item_nota_fiscal',
+    tableName: 'itens_nota_fiscal', // Convenção: plural e snake_case
     timestamps: false,
 });
 
-// --- CORREÇÃO AQUI ---
-// Defina o método associate
-ItemNotaFiscal.associate = function(models) {
-    // ItemNotaFiscal pertence a uma NotaFiscal
+ItemNotaFiscal.associate = (models) => {
+    // Um ItemNotaFiscal pertence a UMA NotaFiscal.
     ItemNotaFiscal.belongsTo(models.NotaFiscal, {
         foreignKey: 'nota_fiscal_id',
-        as: 'notaFiscal' // Alias opcional, mas útil. Se usar, use no include.
+        as: 'notaFiscal'
     });
 
-    // ItemNotaFiscal pertence a um Produto
+    // Um ItemNotaFiscal pertence a UM Produto.
     ItemNotaFiscal.belongsTo(models.Produto, {
         foreignKey: 'produto_id',
-        as: 'produto' // Alias opcional, mas útil. Se usar, use no include.
+        as: 'produto'
     });
 };
 

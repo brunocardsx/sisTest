@@ -1,26 +1,29 @@
-// models/Obra.js
+// Backend/models/Obra.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/database');
 
 const Obra = sequelize.define('Obra', {
+    // Apenas as colunas que pertencem à Obra
     nome: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
+    },
+    endereco: { // Supondo que você queira um endereço
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     tableName: 'obras',
     timestamps: false
 });
 
-// --- CORREÇÃO AQUI ---
-// Defina o método associate
-Obra.associate = function(models) {
-    // Uma Obra pode ter várias Notas Fiscais
-    // Esta é a contraparte da associação NotaFiscal.belongsTo(models.Obra)
+Obra.associate = (models) => {
+    // Uma Obra pode ter VÁRIAS Notas Fiscais.
+    // O Sequelize vai adicionar a coluna 'obra_id' na tabela 'notas_fiscais'.
     Obra.hasMany(models.NotaFiscal, {
-        foreignKey: 'obra_id', // A chave estrangeira na tabela 'nota_fiscal' que referencia 'obras'
-        as: 'notasFiscais'    // Alias opcional
+        foreignKey: 'obra_id',
+        as: 'notasFiscais'
     });
 };
 
