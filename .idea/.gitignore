@@ -1,10 +1,17 @@
-# Default ignored files
+# IntelliJ / WebStorm
 /shelf/
 /workspace.xml
-# Editor-based HTTP Client requests
 /httpRequests/
-# Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-.env
-package-lock.json
+
+# Environment Files - NUNCA ENVIAR PARA O GIT
+# Ignora qualquer arquivo .env em qualquer pasta
+**/.env
+
+# Lockfiles de gerenciadores de pacotes
+# Ignora qualquer package-lock.json em qualquer pasta
+**/package-lock.json
+
+# Pasta de dependências
+**/node_modules
