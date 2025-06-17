@@ -22,7 +22,7 @@ const Produto = sequelize.define('Produto', {
         defaultValue: 0.00,
     }
 }, {
-    tableName: 'produto',
+    tableName: 'produtos',
     timestamps: false,
 });
 
