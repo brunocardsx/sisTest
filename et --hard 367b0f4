@@ -1,0 +1,52 @@
+[33mdb99ae0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: add pg package and update yarn.lock
+[33m367b0f4[m SSASASD
+[33me1166c0[m SSSS
+[33md279302[m SSS
+[33m5ca25fd[m AGORAVAI
+[33m07f9ed5[m fix: regenerate yarn.lock to resolve dependency conflicts
+[33m5cbe1d1[m chore: Remove package-lock.json to use yarn only
+[33m4adc01e[m FIXFIXFIX
+[33m2dd9f7e[m FIXFIXFIXFIX
+[33maf6ce08[m refactor: Standardize all Sequelize models and associations
+[33mc7390b7[m ACABAPLMRDS
+[33md2913df[m TESTTT
+[33mfafd98a[m DATABASE FIX
+[33m0faefa1[m TESTTT
+[33mea6ecc9[m TEST
+[33m756b59b[m feat!: Implement final explicit vercel.json config
+[33m715a0be[m chore: Align local folder case to 'Backend'
+[33mc49d280[m fix: Correct path case in vercel.json to 'backend'
+[33m5bbfb30[m refactor(api): Universalize index.js for Vercel and Render
+[33ma4b76fd[m refactor(api): Universalize index.js for Vercel and Render
+[33m03a62e5[m fix: Use explicit includeFiles in vercel.json
+[33m4b4fb86[m refactor(api): Universalize index.js for Vercel and Render
+[33m34fcdda[m refactor: Move vercel.json to Backend and simplify paths
+[33m9505ce6[m VERCELUPDATE
+[33m9e032d1[m DOTENV
+[33mcc76a85[m FIX YARN
+[33mcd75f6e[m fix!: Remove yarn.lock to resolve package manager conflict
+[33m20353ea[m fix: Regenerate package-lock.json for a clean state
+[33m74aa840[m FUNCIONAAAAA
+[33mfb327ee[m Fix package.json
+[33m49af03a[m Node modules
+[33m5b3d040[m Configuração para web services
+[33mbf8533e[m Quase completo, pronto para deployar
+[33m2f9244e[m Estado atual do projeto
+[33md81678a[m Update README.md
+[33m92e5c86[m Update README.md
+[33m4ab57dd[m Update README.md
+[33ma9bd3a2[m Update README.md
+[33me7ee084[m Update README.md
+[33mf3fc632[m Update README.md
+[33m754c238[m Update README.md
+[33mf4529e0[m Add files via upload
+[33m9f67f37[m Add files via upload
+[33md2c9f81[m Create README.md
+[33m59e4a70[m test
+[33maad2d8c[m fix bugs
+[33m093ffe4[m ..
+[33mb465170[m ...
+[33me98e3f7[m stock and sale
+[33m85c9aa2[m sell page
+[33m7ed8ec5[m add backend and frontend
+[33ma51dad9[m Initialize project using Create React App
