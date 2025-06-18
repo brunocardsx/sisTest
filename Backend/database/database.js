@@ -1,5 +1,6 @@
 // Backend/database/database.js
 const { Sequelize } = require('sequelize');
+require('pg');
 
 // Só carregamos o dotenv se NÃO estivermos em produção.
 if (process.env.NODE_ENV !== 'production') {
