@@ -3,17 +3,11 @@
   "builds": [
     {
       "src": "Backend/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["Backend/**"]
-      }
+      "use": "@vercel/node"
     },
     {
       "src": "Frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
+      "use": "@vercel/static-build"
     }
   ],
   "rewrites": [
@@ -23,7 +17,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/Frontend/build/index.html"
+      "destination": "/Frontend/index.html"
     }
   ]
 }
