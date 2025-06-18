@@ -3,13 +3,24 @@
   "builds": [
     {
       "src": "Backend/index.js",
-      "use": "@vercel/node",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "Frontend/package.json",
+      "use": "@vercel/static-build",
       "config": {
-        "includeFiles": ["Backend/**"]
+        "distDir": "build"
       }
     }
   ],
-  "routes": [
-    { "src": "/(.*)", "dest": "Backend/index.js" }
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/Backend/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/Frontend/index.html"
+    }
   ]
 }
