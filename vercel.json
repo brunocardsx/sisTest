@@ -20,7 +20,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/Frontend/build/index.html"
+      "destination": "/Frontend/index.html"
     }
   ]
 }
