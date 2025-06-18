@@ -1,18 +1,18 @@
-// routes/obraRoutes.js
-const express = require('express');
-const router = express.Router();
+// Dentro de Backend/controllers/obraController.js
 
-// --- ADICIONE ESTA LINHA ---
-const obraController = require('../controllers/obraController');
-// -------------------------
+const { Obra } = require('../models'); // Verifique esta linha com atenção
 
-// Rota para listar todas as obras
-router.get('/', obraController.getAllObras);
+exports.getAllObras = async (req, res) => {
+    console.log("-> Recebida requisição em GET /api/obras"); // <-- Adicione este espião
 
-// Rota para adicionar uma nova obra
-router.post('/', obraController.addObra);
+    try {
+        const obras = await Obra.findAll();
+        console.log(`-> Obras encontradas: ${obras.length}`); // <-- Adicione este também
+        res.status(200).json({ status: true, obras: obras });
+    } catch (error) {
+        console.error("!!! ERRO CRÍTICO em getAllObras:", error); // <-- Adicione este
+        res.status(500).json({ status: false, message: "Erro interno ao processar a requisição." });
+    }
+};
 
-// Rota para excluir uma obra por ID
-router.delete('/:id', obraController.deleteObra); // Agora obraController estará definido
-
-module.exports = router;
+// ... resto do seu controller
