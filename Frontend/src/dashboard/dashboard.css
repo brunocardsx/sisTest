@@ -222,7 +222,11 @@
   width: 100%;
 }
 
+/* ========================================================== */
+/*           REGRAS DE RESPONSIVIDADE (MOBILE & TABLET)       */
+/* ========================================================== */
 @media (max-width: 1024px) {
+  /* Altera o layout principal para uma única coluna */
   .dashboard-content-wrapper {
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -230,5 +234,50 @@
       "main"
       "sidebar";
     padding: 16px;
+    gap: 16px;
+  }
+
+  /* Reduz o tamanho da fonte dos títulos para caber melhor */
+  .dashboard-title {
+    font-size: 1.6rem;
+  }
+  .section-title {
+    font-size: 1.3rem;
+  }
+  .widget-card h3 {
+    font-size: 1rem;
+  }
+  .total-gastos-value {
+    font-size: 2rem;
+  }
+
+  /* Ajusta o grid de cards de navegação para mobile */
+  .dashboard-cards-grid {
+    /* Força duas colunas em telas menores para melhor aproveitamento de espaço */
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .dashboard-nav-card {
+    padding: 16px;
+    min-height: 120px;
+  }
+  .icon-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  .dashboard-nav-card i {
+    font-size: 1.5rem;
+  }
+
+  /* Garante que os filtros fiquem um embaixo do outro */
+  .filters-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Reduz a altura do gráfico para não ocupar a tela toda */
+  .chart-wrapper-dashboard {
+    height: 300px;
   }
 }

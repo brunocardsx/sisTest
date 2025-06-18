@@ -22,3 +22,12 @@ body {
     flex-grow: 1;
     background-color: #F3F4F6;
 }
+
+
+@media (max-width: 768px) {
+    /* Altera o layout principal para uma única coluna */
+    .app-layout {
+        /* O menu será escondido, então o conteúdo principal ocupará 100% da largura */
+        grid-template-columns: 1fr;
+    }
+}
