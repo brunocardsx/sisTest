@@ -19,8 +19,8 @@
       "destination": "/Backend/index.js"
     },
     {
-      "source": "/((?!api/|\\_next/|\\.\\w+).*)",
-      "destination": "/index.html"
+      "source": "/((?!api/|_next/|static/|favicon.ico|logo.png|manifest.json|\\.\\w+).*)",
+      "destination": "/Frontend/build/index.html"
     }
   ]
 }
