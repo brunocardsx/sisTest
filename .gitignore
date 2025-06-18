@@ -1,1 +1,3 @@
 node_modules
+# ... outros arquivos ignorados
+/Frontend/.env
