@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/', // Aponta para a raiz do próprio site
-  withCredentials: true,
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8081' // Ou a porta local que você usa
 });
 
 export default api;
