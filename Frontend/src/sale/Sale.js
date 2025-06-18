@@ -37,10 +37,8 @@ export default function Sale() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
-  // Refs para focar nos inputs
   const quantityInputRef = useRef(null);
 
-  // Hooks
   useEffect(() => {
     fetchProducts();
     fetchObras();
@@ -53,7 +51,6 @@ export default function Sale() {
     }
   }, [msg]);
 
-  // Funções auxiliares
   const showMsg = (type, text) => setMsg({ show: true, type, text });
 
   const resetForm = () => {
@@ -64,7 +61,6 @@ export default function Sale() {
     setCurrentProduct(null);
   };
 
-  // Funções de busca
   async function fetchProducts() {
     try {
       const { data } = await api.get('/api/produto');
@@ -91,7 +87,6 @@ export default function Sale() {
     }
   }
 
-  // Funções de manipulação de produtos
   function handleProductSelect(option) {
     if (option) {
       setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
@@ -100,12 +95,12 @@ export default function Sale() {
       setCurrentProduct(null);
     }
   }
+
   const handleCreateProduct = (inputValue) => {
     setNewProductName(inputValue);
     setIsCreateModalOpen(true);
   };
 
-  // <<< CORREÇÃO: Lógica para salvar o novo produto implementada.
   const handleSaveNewProduct = async () => {
     if (!newProductName.trim()) {
       showMsg('error', 'O nome do produto não pode ser vazio.');
@@ -118,10 +113,10 @@ export default function Sale() {
         showMsg('success', `Produto "${newProductName}" criado com sucesso!`);
         setIsCreateModalOpen(false);
         setNewProductName('');
-        const updatedProducts = await fetchProducts(); // Recarrega a lista
+        const updatedProducts = await fetchProducts();
         const newProduct = updatedProducts.find(p => p.id === response.data.produto.id);
         if (newProduct) {
-          handleProductSelect(newProduct); // Seleciona o produto recém-criado
+          handleProductSelect(newProduct);
         }
       } else {
         showMsg('error', response.data.message || 'Erro ao criar produto.');
@@ -135,7 +130,6 @@ export default function Sale() {
 
   const handleOpenDeleteModal = () => { if (currentProduct) setIsDeleteModalOpen(true); };
 
-  // <<< CORREÇÃO: Lógica para deletar o produto implementada.
   const handleDeleteProduct = async () => {
     if (!currentProduct) return;
     setIsDeletingProduct(true);
@@ -145,7 +139,7 @@ export default function Sale() {
         showMsg('success', `Produto "${currentProduct.label}" excluído com sucesso.`);
         setIsDeleteModalOpen(false);
         setCurrentProduct(null);
-        fetchProducts(); // Recarrega a lista de produtos
+        fetchProducts();
       } else {
         showMsg('error', response.data.message || 'Erro ao excluir o produto.');
       }
@@ -156,27 +150,27 @@ export default function Sale() {
     }
   };
 
-
-  // Funções de manipulação da nota
   function handleObraSelect(option) {
     setObraId(option ? option.value : null);
   }
+
   function addProductToInvoice() {
     if (!currentProduct || !currentProduct.quantity || !currentProduct.unitPrice) {
       return showMsg('error', 'Preencha a quantidade e o valor do produto.');
     }
     const totalValue = Number(currentProduct.quantity) * Number(currentProduct.unitPrice);
     setSelectedItems((prev) => [...prev, { ...currentProduct, quantity: Number(currentProduct.quantity), unitPrice: Number(currentProduct.unitPrice), totalValue }]);
-    setCurrentProduct(null); // Limpa a seleção para adicionar o próximo
+    setCurrentProduct(null);
   }
+
   function removeProductFromInvoice(id) {
     setSelectedItems((prev) => prev.filter((item) => item.value !== id));
   }
+
   function calculateTotal() {
     return selectedItems.reduce((acc, item) => acc + item.totalValue, 0).toFixed(2);
   }
 
-  // Função para adicionar produto com a tecla "Enter"
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -184,9 +178,6 @@ export default function Sale() {
     }
   };
 
-  // ==========================================================
-  // FUNÇÃO PARA SALVAR A NOTA FISCAL (Sua implementação original mantida)
-  // ==========================================================
   async function saveInvoice() {
     if (!invoiceNumber.trim()) return showMsg('error', 'O número da nota fiscal é obrigatório.');
     if (!obraId) return showMsg('error', 'Selecione uma obra.');
@@ -244,7 +235,7 @@ export default function Sale() {
             {currentProduct && (
                 <>
                   <button type="button" className="sale-btn-delete-product" onClick={handleOpenDeleteModal}>
-                    <i className="fas fa-trash-alt" style={{ marginRight: '8px' }}></i> Excluir produto "{currentProduct.label}"
+                    <i className="fas fa-trash-alt"></i> Excluir produto "{currentProduct.label}"
                   </button>
                   <div className="sale-product-details">
                     <div className="sale-form-group">
@@ -266,32 +257,65 @@ export default function Sale() {
               {isSavingInvoice ? 'Salvando...' : 'Salvar Nota Fiscal'}
             </button>
           </div>
+
+          {/* <<< CORREÇÃO: CARD DE ITENS DA NOTA RESTAURADO ABAIXO >>> */}
           <div className="sale-card">
-            {/* ... (O restante do card de itens da nota permanece o mesmo) ... */}
+            <h3 className="sale-card-title">Itens da Nota</h3>
+            <div className="sale-items-table-container">
+              <table className="sale-items-table">
+                <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Qtd.</th>
+                  <th className="col-numeric">Vlr. Unit.</th>
+                  <th className="col-numeric">Vlr. Total</th>
+                  <th className="col-actions">Ação</th>
+                </tr>
+                </thead>
+                <tbody>
+                {selectedItems.length > 0 ? (
+                    selectedItems.map((item) => (
+                        <tr key={item.value}>
+                          <td>{item.label}</td>
+                          <td>{item.quantity}</td>
+                          <td className="col-numeric">R$ {Number(item.unitPrice).toFixed(2)}</td>
+                          <td className="col-numeric">R$ {Number(item.totalValue).toFixed(2)}</td>
+                          <td className="col-actions">
+                            <button className="sale-btn-remove" title="Remover Item" onClick={() => removeProductFromInvoice(item.value)}>
+                              <i className="fas fa-trash-alt"></i>
+                            </button>
+                          </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr className="empty-row">
+                      <td colSpan="5">Nenhum item adicionado.</td>
+                    </tr>
+                )}
+                </tbody>
+              </table>
+            </div>
+            <div className="sale-total">
+              <strong>Total da Nota: R$ {calculateTotal()}</strong>
+            </div>
           </div>
         </div>
 
-        {/* <<< CORREÇÃO: JSX completo para o modal de criação. */}
+        {/* --- Modais --- */}
         {isCreateModalOpen && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3 className="modal-title">Criar Novo Produto</h3>
+            <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <h2>Criar Novo Produto</h2>
                 <p>Digite o nome do novo produto que deseja cadastrar.</p>
                 <div className="sale-form-group">
                   <label>Nome do Produto</label>
-                  <input
-                      type="text"
-                      className="sale-input"
-                      value={newProductName}
-                      onChange={(e) => setNewProductName(e.target.value)}
-                      autoFocus
-                  />
+                  <input type="text" className="sale-input" value={newProductName} onChange={(e) => setNewProductName(e.target.value)} autoFocus />
                 </div>
                 <div className="modal-actions">
-                  <button className="modal-btn modal-btn-cancel" onClick={() => setIsCreateModalOpen(false)} disabled={isSavingProduct}>
+                  <button className="btn-modal cancel" onClick={() => setIsCreateModalOpen(false)} disabled={isSavingProduct}>
                     Cancelar
                   </button>
-                  <button className="modal-btn modal-btn-confirm" onClick={handleSaveNewProduct} disabled={isSavingProduct}>
+                  <button className="btn-modal save" onClick={handleSaveNewProduct} disabled={isSavingProduct || !newProductName.trim()}>
                     {isSavingProduct ? 'Salvando...' : 'Salvar Produto'}
                   </button>
                 </div>
@@ -299,18 +323,21 @@ export default function Sale() {
             </div>
         )}
 
-        {/* <<< CORREÇÃO: JSX completo para o modal de exclusão. */}
         {isDeleteModalOpen && currentProduct && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3 className="modal-title">Confirmar Exclusão</h3>
-                <p>Você tem certeza que deseja excluir o produto <strong>"{currentProduct.label}"</strong>? Esta ação não pode ser desfeita.</p>
+            <div className="modal-overlay" onClick={() => setIsDeleteModalOpen(false)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <h2>Confirmar Exclusão</h2>
+                <p>
+                  Você tem certeza que deseja excluir o produto
+                  <span className="product-to-delete">{currentProduct.label}</span>?
+                </p>
+                <p className='delete-warning'>Esta ação não pode ser desfeita.</p>
                 <div className="modal-actions">
-                  <button className="modal-btn modal-btn-cancel" onClick={() => setIsDeleteModalOpen(false)} disabled={isDeletingProduct}>
+                  <button className="btn-modal cancel" onClick={() => setIsDeleteModalOpen(false)} disabled={isDeletingProduct}>
                     Cancelar
                   </button>
-                  <button className="modal-btn modal-btn-danger" onClick={handleDeleteProduct} disabled={isDeletingProduct}>
-                    {isDeletingProduct ? 'Excluindo...' : 'Confirmar Exclusão'}
+                  <button className="btn-modal danger" onClick={handleDeleteProduct} disabled={isDeletingProduct}>
+                    {isDeletingProduct ? 'Excluindo...' : 'Sim, Excluir'}
                   </button>
                 </div>
               </div>
