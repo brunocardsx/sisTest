@@ -1,11 +1,9 @@
 // index.js (Backend)
 
-// Carrega as variáveis do arquivo .env em desenvolvimento
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
-const db = require('./models'); // O 'db' aqui já deve conter o sequelize configurado
+const db = require('./models');
 
 // Importação das rotas
 const obraRoutes = require('./routes/obraRoutes');
@@ -17,34 +15,32 @@ const saleRoutes = require('./routes/saleRoutes');
 const app = express();
 
 // ==========================================================
-// CONFIGURAÇÃO DE CORS DINÂMICA
+// CONFIGURAÇÃO DE CORS
 // ==========================================================
-// Pega a URL do frontend da variável de ambiente. Se não existir, usa a de localhost.
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-
+// Simplificado para máxima compatibilidade. Permite todas as origens,
+// mas apenas os métodos e cabeçalhos que especificamos.
 app.use(cors({
-    origin: frontendUrl,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    credentials: true
 }));
 
 // Middleware para parsear JSON
 app.use(express.json());
 
-// Configuração das rotas da API (padronizadas com /api)
+// Configuração das rotas da API
 app.use('/api/obras', obraRoutes);
 app.use('/api/materiais', materialRoutes);
 app.use('/api/notas-fiscais', notaFiscalRoutes);
 app.use('/api/produto', produtoRoutes);
 app.use('/api/sales', saleRoutes);
 
-// Rota de health check - Ótima prática!
+// Rota de health check
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'UP' });
 });
 
-// Middleware para tratamento de erros - Colocado antes do 'listen'
+// Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Algo deu errado no servidor!');
@@ -53,14 +49,10 @@ app.use((err, req, res, next) => {
 // ==========================================================
 // LÓGICA DE INICIALIZAÇÃO E EXPORTAÇÃO
 // ==========================================================
-const PORT = process.env.PORT || 8081;
-
-// A Vercel não usa o app.listen. Ela só precisa do 'app' exportado.
-// O Render e o ambiente local precisam do app.listen.
-// O 'require.main === module' é uma forma inteligente de verificar se o arquivo está sendo
-// executado diretamente (com 'node index.js') ou se está sendo importado por outro (como a Vercel faz).
-if (require.main === module) {
-    // Este bloco só roda no RENDER e no seu PC LOCAL
+// Bloco de sincronização com o banco de dados e inicialização do servidor
+// para ambientes não-serverless (como seu PC local)
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 8081;
     db.sequelize.sync({ alter: true })
         .then(() => {
             console.log('Banco de dados sincronizado com sucesso.');
