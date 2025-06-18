@@ -4,40 +4,12 @@
     {
       "src": "Backend/index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "Frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "buildCommand": "yarn build"
-      }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/Backend/index.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/Frontend/build/static/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/Frontend/build/favicon.ico"
-    },
-    {
-      "src": "/logo.png",
-      "dest": "/Frontend/build/logo.png"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/Frontend/build/manifest.json"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/Frontend/build/index.html"
+      "source": "/api/(.*)",
+      "destination": "/Backend/index.js"
     }
   ]
 }
