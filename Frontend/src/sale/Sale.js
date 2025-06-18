@@ -4,6 +4,7 @@ import Select from 'react-select';
 import api from '../services/api';
 import './sale.css';
 
+// Forçando um novo deploy para o Vercel - 17/06/2024
 // Estilos customizados (inalterado)
 const customSelectStyles = {
   control: (provided, state) => ({
