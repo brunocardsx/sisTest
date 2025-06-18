@@ -1,79 +1,67 @@
-import React, { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import './menu.css'
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './menu.css'; // O novo CSS será importado aqui
 
-export default function Menu () {
-  const location = useLocation()
-  const [allowMenu, setAllowMenu] = useState(false)
+// Para deixar o código mais limpo, definimos os itens do menu em arrays
+const primaryMenuItems = [
+  { path: '/dashboard', icon: 'fas fa-home', label: 'Início' },
+  { path: '/select-action', icon: 'fas fa-hand-holding-dollar', label: 'Receber / Vender' },
+  { path: '/cliente', icon: 'fas fa-users', label: 'Cliente' },
+  { path: '/produto', icon: 'fas fa-store', label: 'Produto' },
+  { path: '/estoque', icon: 'fas fa-boxes-stacked', label: 'Estoque' },
+  { path: '/contas', icon: 'fas fa-receipt', label: 'Contas' },
+];
 
-  useEffect(() => {
-    // Não exibe o menu na tela de login
-    if (location.pathname.indexOf("login") !== -1) {
-      setAllowMenu(false)
-    } else {
-      setAllowMenu(true)
-    }
-  }, [location])
+const secondaryMenuItems = [
+  { path: '/configuracoes', icon: 'fas fa-cog', label: 'Configurações' },
+  { path: '/login', icon: 'fas fa-sign-out-alt', label: 'Sair' },
+];
 
-  // Função para determinar se a rota está ativa
+export default function Menu() {
+  const location = useLocation();
+
+  // A lógica para esconder o menu na página de login não é mais necessária,
+  // pois o App.js já cuida disso ao não renderizar o MainLayout na rota de login.
+  // Mas, caso precise, ela estaria aqui.
+
   function isActive(path) {
-    return location.pathname === path ? 'active' : ''
+    // Faz a verificação para a rota raiz e outras
+    return location.pathname === path ? 'active' : '';
   }
 
   return (
-      allowMenu ?
-          <div className="menu-container">
-            <div className="menu-content">
-              <div className="text-center logo-container mt-4">
-                <Link to={"/dashboard"}>
-                  <img src={`${require("../images/LOGO.png").default}`} width="65%" alt="Logo" />
-                </Link>
-              </div>
+      // Removido o ternário, pois o App.js já controla a exibição do Menu.
+      <aside className="menu-container">
+        <div className="logo-container">
+          <Link to="/dashboard">
+            <img src={require("../images/LOGO.png").default} alt="Logo do Sistema" />
+          </Link>
+        </div>
 
-              <Link className="no-href-decoration" to="/dashboard">
-                <div className={`option-menu ${isActive('/dashboard')}`} id="dashboard">
-                  <i className="fas fa-house"></i> Inicio
+        <nav className="menu-nav">
+          {primaryMenuItems.map(item => (
+              <Link to={item.path} className="menu-item-link" key={item.label}>
+                <div className={`menu-item ${isActive(item.path)}`}>
+                  <i className={item.icon}></i>
+                  <span className="menu-item-text">{item.label}</span>
                 </div>
               </Link>
+          ))}
+        </nav>
 
-              <Link className="no-href-decoration" to="/select-action">
-                <div className={`option-menu ${isActive('/select-action')}`} id="venda">
-                  <i className="fas fa-hand-holding-usd"></i> Receber / Vender
+        {/* Este elemento flexível empurra o próximo nav para o final */}
+        <div className="menu-spacer"></div>
+
+        <nav className="menu-nav">
+          {secondaryMenuItems.map(item => (
+              <Link to={item.path} className="menu-item-link" key={item.label}>
+                <div className={`menu-item ${isActive(item.path)}`}>
+                  <i className={item.icon}></i>
+                  <span className="menu-item-text">{item.label}</span>
                 </div>
               </Link>
-
-              <Link className="no-href-decoration" to="/cliente">
-                <div className={`option-menu ${isActive('/cliente')}`} id="cliente">
-                  <i className="fas fa-users"></i> Cliente
-                </div>
-              </Link>
-
-              <Link className="no-href-decoration" to="/produto">
-                <div className={`option-menu ${isActive('/produto')}`} id="produto">
-                  <i className="fas fa-store"></i> Produto
-                </div>
-              </Link>
-
-              <Link className="no-href-decoration" to="/contas">
-                <div className={`option-menu ${isActive('/contas')}`} id="contas">
-                  <i className="fas fa-minus-circle"></i> Contas
-                </div>
-              </Link>
-
-              <Link className="no-href-decoration" to="/estoque">
-                <div className={`option-menu ${isActive('/estoque')}`} id="estoque">
-                  <i className="fas fa-boxes"></i> Estoque
-                </div>
-              </Link>
-
-              <Link className="no-href-decoration" to="/login">
-                <div className="option-menu">
-                  <i className="fas fa-sign-out-alt"></i> Sair
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          : <></>
-  )
+          ))}
+        </nav>
+      </aside>
+  );
 }

@@ -1,117 +1,162 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import './notaFiscal.css'; // Certifique-se que este CSS é a versão com o layout centralizado
+import './notaFiscal.css';
+
+// ===================================================================
+//  1. COMPONENTES DE UI (PRESENTATIONAL)
+// ===================================================================
+
+const formatDate = (dateString) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString));
+const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(value) || 0);
+
+const SearchByNumber = ({ numero, setNumero, onSubmit, isLoading, msg }) => (
+    <>
+        <h2 className="nf-card-title">Consultar por Número</h2>
+        <form onSubmit={onSubmit}>
+            <div className="form-group">
+                <label htmlFor="numeroNotaConsulta">Número da Nota Fiscal</label>
+                <input id="numeroNotaConsulta" type="text" className="form-input" placeholder="Digite o número" value={numero} onChange={(e) => setNumero(e.target.value)} disabled={isLoading} />
+            </div>
+            <button type="submit" className="btn btn-primary btn-full-width" disabled={isLoading}>
+                {isLoading ? "Buscando..." : "Buscar Nota"}
+            </button>
+        </form>
+        {msg.text && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
+    </>
+);
+
+const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
+    <div className="results-container">
+        <div className="info-grid">
+            <p><strong>Emissão:</strong> <span>{nota.data_emissao_formatada}</span></p>
+            <p><strong>Obra:</strong> <span>{nota.obra_nome || 'N/A'}</span></p>
+            <p><strong>Valor Total:</strong> <span>{formatCurrency(nota.valor_total_nota)}</span></p>
+        </div>
+        <table className="items-table">
+            <thead><tr><th>Produto</th><th className="text-right">Qtd</th><th className="text-right">Vl. Unit.</th><th className="text-right">Total</th></tr></thead>
+            <tbody>
+            {nota.itens.map((item, i) => (
+                <tr key={i}>
+                    <td>{item.produto_nome}</td>
+                    <td className="text-right">{item.quantidade}</td>
+                    <td className="text-right">{formatCurrency(item.valor_unitario)}</td>
+                    <td className="text-right">{formatCurrency(item.valor_total_item)}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+        <button className="btn btn-danger" onClick={() => onOpenDeleteModal(nota)}>Excluir Nota Fiscal</button>
+    </div>
+);
+
+const SearchByDate = ({ dataInicio, setDataInicio, dataFim, setDataFim, onSubmit, isLoading, msg }) => (
+    <>
+        <h2 className="nf-card-title">Listar por Período</h2>
+        <form onSubmit={onSubmit}>
+            <div className="date-form-grid">
+                <div className="form-group"><label htmlFor="dataInicio">Data de Início</label><input id="dataInicio" type="date" className="form-input" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} disabled={isLoading} /></div>
+                <div className="form-group"><label htmlFor="dataFim">Data de Fim</label><input id="dataFim" type="date" className="form-input" value={dataFim} onChange={(e) => setDataFim(e.target.value)} disabled={isLoading} /></div>
+            </div>
+            <button type="submit" className="btn btn-primary btn-full-width" disabled={isLoading}>{isLoading ? "Buscando..." : "Listar Notas"}</button>
+        </form>
+        {msg.text && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
+    </>
+);
+
+const InvoicesList = ({ notas, onOpenDeleteModal }) => (
+    <div className="results-container">
+        <table className="items-table">
+            <thead><tr><th>Nº Nota</th><th>Data</th><th>Obra</th><th className="text-right">Valor</th><th className="action-col">Ação</th></tr></thead>
+            <tbody>
+            {notas.map((nota) => (
+                <tr key={nota.id}>
+                    <td>{nota.numero}</td>
+                    <td>{nota.data_emissao_formatada}</td>
+                    <td>{nota.obra_nome}</td>
+                    <td className="text-right">{formatCurrency(nota.valor_total_nota)}</td>
+                    <td className="action-col"><button className="btn" onClick={() => onOpenDeleteModal(nota)}>Excluir</button></td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+    </div>
+);
+
+const DeleteModal = ({ isOpen, onClose, onConfirm, nota, isDeleting }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h2>Confirmar Exclusão</h2>
+                <p>Deseja excluir a nota fiscal nº <strong className="item-to-delete">{nota?.numero}</strong>?</p>
+                <p className="delete-warning">Esta ação não pode ser desfeita.</p>
+                <div className="modal-actions">
+                    <button className="btn-modal cancel" onClick={onClose} disabled={isDeleting}>Cancelar</button>
+                    <button className="btn-modal danger" onClick={onConfirm} disabled={isDeleting}>{isDeleting ? 'Excluindo...' : 'Sim, Excluir'}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ===================================================================
+//  2. COMPONENTE PRINCIPAL (CONTAINER)
+// ===================================================================
 
 export default function NotaFiscal() {
-    // Estados
+    // --- Estados ---
     const [numeroNotaConsulta, setNumeroNotaConsulta] = useState("");
     const [notaFiscalDetalhe, setNotaFiscalDetalhe] = useState(null);
-    const [msgConsulta, setMsgConsulta] = useState({ type: '', text: '' });
-    const [loadingConsulta, setLoadingConsulta] = useState(false);
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
     const [notasFiltradas, setNotasFiltradas] = useState([]);
+    const [msgConsulta, setMsgConsulta] = useState({ type: '', text: '' });
     const [msgLista, setMsgLista] = useState({ type: '', text: '' });
+    const [loadingConsulta, setLoadingConsulta] = useState(false);
     const [loadingLista, setLoadingLista] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [notaToDelete, setNotaToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Efeitos para limpar mensagens de feedback
+    // --- Efeitos ---
     useEffect(() => {
-        if (msgConsulta.text) {
-            const timer = setTimeout(() => setMsgConsulta({ type: '', text: '' }), 5000);
-            return () => clearTimeout(timer);
-        }
+        if (msgConsulta.text) { const timer = setTimeout(() => setMsgConsulta({ type: '', text: '' }), 5000); return () => clearTimeout(timer); }
     }, [msgConsulta]);
     useEffect(() => {
-        if (msgLista.text) {
-            const timer = setTimeout(() => setMsgLista({ type: '', text: '' }), 5000);
-            return () => clearTimeout(timer);
-        }
+        if (msgLista.text) { const timer = setTimeout(() => setMsgLista({ type: '', text: '' }), 5000); return () => clearTimeout(timer); }
     }, [msgLista]);
 
-    // Funções de formatação
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(date);
-    };
-    const formatCurrency = (value) => {
-        const val = parseFloat(value);
-        if (isNaN(val)) return "R$ 0,00";
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-    };
-
-    // Funções de busca
-    async function buscarNotaPorNumero(e) {
+    // --- Funções de API ---
+    const buscarNotaPorNumero = async (e) => {
         e.preventDefault();
-        if (!numeroNotaConsulta.trim()) {
-            setMsgConsulta({ type: 'error', text: 'Por favor, digite o número da nota fiscal.' });
-            return;
-        }
-        setMsgConsulta({ type: '', text: '' });
+        if (!numeroNotaConsulta.trim()) return setMsgConsulta({ type: 'error', text: 'Digite o número da nota.' });
         setLoadingConsulta(true);
         setNotaFiscalDetalhe(null);
-
         try {
-            const response = await api.get(`/api/notas-fiscais/numero/${numeroNotaConsulta.trim()}`);
-            if (response.data && response.data.status) {
-                setNotaFiscalDetalhe({
-                    ...response.data.data,
-                    data_emissao_formatada: formatDate(response.data.data.data_emissao)
-                });
-            } else {
-                setMsgConsulta({ type: 'error', text: response.data.message || "Nota fiscal não encontrada." });
-            }
+            const { data } = await api.get(`/api/notas-fiscais/numero/${numeroNotaConsulta.trim()}`);
+            setNotaFiscalDetalhe(data.status ? { ...data.data, data_emissao_formatada: formatDate(data.data.data_emissao) } : null);
+            setMsgConsulta({ type: data.status ? '' : 'error', text: data.status ? '' : data.message });
         } catch (err) {
-            setMsgConsulta({ type: 'error', text: err.response?.data?.message || "Erro ao buscar a nota fiscal." });
+            setMsgConsulta({ type: 'error', text: err.response?.data?.message || "Erro ao buscar nota." });
         } finally {
             setLoadingConsulta(false);
         }
-    }
+    };
 
-    async function buscarNotasPorData(e) {
-        e.preventDefault(); // Previne o comportamento padrão
-        if (!dataInicio || !dataFim) {
-            setMsgLista({ type: 'error', text: 'As datas de início e fim são obrigatórias.' });
-            setNotasFiltradas([]);
-            return;
-        }
-        setMsgLista({ type: '', text: '' });
+    const buscarNotasPorData = async (e) => {
+        e.preventDefault();
+        if (!dataInicio || !dataFim) return setMsgLista({ type: 'error', text: 'As datas são obrigatórias.' });
         setLoadingLista(true);
         setNotasFiltradas([]);
-
         try {
-            const response = await api.get(`/api/notas-fiscais/por-data?data_inicio=${dataInicio}&data_fim=${dataFim}`);
-            if (response.data && response.data.status && response.data.data.length > 0) {
-                setNotasFiltradas(response.data.data.map(nf => ({
-                    ...nf,
-                    data_emissao_formatada: formatDate(nf.data_emissao)
-                })));
-            } else {
-                setMsgLista({ type: 'info', text: response.data.message || "Nenhuma nota fiscal encontrada." });
-            }
+            const { data } = await api.get(`/api/notas-fiscais/por-data?data_inicio=${dataInicio}&data_fim=${dataFim}`);
+            setNotasFiltradas(data.status ? data.data.map(nf => ({ ...nf, data_emissao_formatada: formatDate(nf.data_emissao) })) : []);
+            setMsgLista({ type: data.data.length > 0 ? '' : 'info', text: data.data.length > 0 ? '' : data.message });
         } catch (err) {
-            setMsgLista({ type: 'error', text: err.response?.data?.message || "Erro ao buscar notas fiscais." });
+            setMsgLista({ type: 'error', text: err.response?.data?.message || "Erro ao buscar notas." });
         } finally {
             setLoadingLista(false);
         }
-    }
-
-    // Funções de exclusão
-    const handleOpenDeleteModal = (nota) => {
-        if (!nota || typeof nota.id === 'undefined') {
-            setMsgLista({ type: 'error', text: 'Erro: Não foi possível identificar a nota para exclusão.' });
-            return;
-        }
-        setNotaToDelete(nota);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleCloseDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        setNotaToDelete(null);
     };
 
     const handleDeleteNota = async () => {
@@ -120,197 +165,62 @@ export default function NotaFiscal() {
         try {
             const { data } = await api.delete(`/api/notas-fiscais/${notaToDelete.id}`);
             if (data.status) {
-                if (notaFiscalDetalhe && notaFiscalDetalhe.id === notaToDelete.id) {
-                    setNotaFiscalDetalhe(null);
-                }
-                setNotasFiltradas(prev => prev.filter(n => n.id !== notaToDelete.id));
                 setMsgLista({ type: 'success', text: data.message });
+                if (notaFiscalDetalhe?.id === notaToDelete.id) setNotaFiscalDetalhe(null);
+                setNotasFiltradas(prev => prev.filter(n => n.id !== notaToDelete.id));
             } else {
-                setMsgLista({ type: 'error', text: data.message || 'Erro ao excluir a nota.' });
+                setMsgLista({ type: 'error', text: data.message });
             }
-        } catch (error) {
-            const errorMsg = error.response?.data?.message || 'Erro de conexão ao excluir a nota.';
-            setMsgLista({ type: 'error', text: errorMsg });
+        } catch (err) {
+            setMsgLista({ type: 'error', text: err.response?.data?.message || 'Erro ao excluir.' });
         } finally {
             setIsDeleting(false);
-            handleCloseDeleteModal();
+            setIsDeleteModalOpen(false);
+            setNotaToDelete(null);
         }
     };
 
+    const handleOpenDeleteModal = (nota) => {
+        setNotaToDelete(nota);
+        setIsDeleteModalOpen(true);
+    };
+
+    // --- Renderização ---
     return (
         <>
-            <div className="query-nf-page-container">
-                {/* CARD DE CONSULTA POR NÚMERO */}
-                <div className="query-nf-card">
-                    <h2 className="query-nf-card-title">Consultar por Número</h2>
-                    <div className="form-content-wrapper">
-                        <form onSubmit={buscarNotaPorNumero}>
-                            <div className="query-nf-form-group">
-                                <label htmlFor="numeroNotaConsulta">Número da Nota Fiscal</label>
-                                <input
-                                    className="query-nf-input"
-                                    type="text"
-                                    id="numeroNotaConsulta"
-                                    placeholder="Digite o número"
-                                    value={numeroNotaConsulta}
-                                    onChange={(e) => setNumeroNotaConsulta(e.target.value)}
-                                    disabled={loadingConsulta}
-                                />
-                            </div>
-                            <button type="submit" className="query-nf-btn" disabled={loadingConsulta}>
-                                {loadingConsulta ? "Buscando..." : "Buscar Nota"}
-                            </button>
-                        </form>
-                    </div>
-
-                    {msgConsulta.text && (
-                        <div className="form-content-wrapper">
-                            <p className={`query-nf-feedback ${msgConsulta.type}`}>{msgConsulta.text}</p>
-                        </div>
-                    )}
-
+            <div className="nf-page-wrapper">
+                <div className="nf-card">
+                    <SearchByNumber
+                        numero={numeroNotaConsulta}
+                        setNumero={setNumeroNotaConsulta}
+                        onSubmit={buscarNotaPorNumero}
+                        isLoading={loadingConsulta}
+                        msg={msgConsulta}
+                    />
                     {notaFiscalDetalhe && (
-                        <div className="query-nf-result-details">
-                            <div className="query-nf-result-info">
-                                <p><strong>Data de Emissão:</strong> {notaFiscalDetalhe.data_emissao_formatada}</p>
-                                <p><strong>Obra:</strong> {notaFiscalDetalhe.obra_nome || 'N/A'}</p>
-                                <p><strong>Valor Total:</strong> {formatCurrency(notaFiscalDetalhe.valor_total_nota)}</p>
-                            </div>
-                            <table className="query-nf-items-table">
-                                <thead>
-                                <tr>
-                                    <th>Produto</th>
-                                    <th className="col-quantity">Qtd</th>
-                                    <th className="col-value">Vl. Unit.</th>
-                                    <th className="col-total">Total</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {notaFiscalDetalhe.itens.length > 0 ? notaFiscalDetalhe.itens.map((item, i) => (
-                                    <tr key={`detalhe-item-${i}`}>
-                                        <td>{item.produto_nome}</td>
-                                        <td className="col-quantity">{item.quantidade}</td>
-                                        <td className="col-value">{formatCurrency(item.valor_unitario)}</td>
-                                        <td className="col-total">{formatCurrency(item.valor_total_item)}</td>
-                                    </tr>
-                                )) : (
-                                    <tr className="empty-row"><td colSpan="4">Nenhum item encontrado.</td></tr>
-                                )}
-                                </tbody>
-                            </table>
-                            <div className="form-content-wrapper">
-                                <button
-                                    className="query-nf-btn-delete"
-                                    onClick={() => handleOpenDeleteModal(notaFiscalDetalhe)}
-                                    disabled={isDeleting}
-                                >
-                                    Excluir Nota Fiscal
-                                </button>
-                            </div>
-                        </div>
+                        <InvoiceDetails nota={notaFiscalDetalhe} onOpenDeleteModal={handleOpenDeleteModal} />
                     )}
                 </div>
-
-                {/* CARD DE LISTAGEM POR DATA */}
-                <div className="query-nf-card">
-                    <h2 className="query-nf-card-title">Listar por Período</h2>
-                    <div className="form-content-wrapper">
-                        <form onSubmit={buscarNotasPorData} className="query-nf-date-form">
-                            <div className="query-nf-form-group">
-                                <label htmlFor="dataInicio">Data de Início</label>
-                                <input
-                                    className="query-nf-input"
-                                    type="date"
-                                    id="dataInicio"
-                                    value={dataInicio}
-                                    onChange={(e) => setDataInicio(e.target.value)}
-                                    disabled={loadingLista}
-                                />
-                            </div>
-                            <div className="query-nf-form-group">
-                                <label htmlFor="dataFim">Data de Fim</label>
-                                <input
-                                    className="query-nf-input"
-                                    type="date"
-                                    id="dataFim"
-                                    value={dataFim}
-                                    onChange={(e) => setDataFim(e.target.value)}
-                                    disabled={loadingLista}
-                                />
-                            </div>
-                        </form>
-                        <button
-                            type="button"
-                            className="query-nf-btn"
-                            style={{ marginTop: '1rem' }}
-                            onClick={buscarNotasPorData}
-                            disabled={loadingLista}
-                        >
-                            {loadingLista ? "Buscando..." : "Listar Notas"}
-                        </button>
-                    </div>
-
-                    {loadingLista && <p className="query-nf-loading">Carregando notas...</p>}
-                    {msgLista.text && <p className={`query-nf-feedback ${msgLista.type}`}>{msgLista.text}</p>}
-
+                <div className="nf-card">
+                    <SearchByDate
+                        dataInicio={dataInicio} setDataInicio={setDataInicio}
+                        dataFim={dataFim} setDataFim={setDataFim}
+                        onSubmit={buscarNotasPorData}
+                        isLoading={loadingLista}
+                        msg={msgLista}
+                    />
                     {notasFiltradas.length > 0 && (
-                        <div className="query-nf-list-results">
-                            <table className="query-nf-items-table">
-                                <thead>
-                                <tr>
-                                    <th>Nº da Nota</th>
-                                    <th>Data Emissão</th>
-                                    <th>Obra</th>
-                                    <th>Valor Total</th>
-                                    <th className="action-col">Ações</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {notasFiltradas.map((nota) => (
-                                    <tr key={nota.id}>
-                                        <td>{nota.numero}</td>
-                                        <td>{nota.data_emissao_formatada}</td>
-                                        <td>{nota.obra_nome}</td>
-                                        <td>{formatCurrency(nota.valor_total_nota)}</td>
-                                        <td className="action-col">
-                                            <button
-                                                className="query-nf-btn-delete"
-                                                onClick={() => handleOpenDeleteModal(nota)}
-                                                disabled={isDeleting}
-                                            >
-                                                Excluir
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <InvoicesList notas={notasFiltradas} onOpenDeleteModal={handleOpenDeleteModal} />
                     )}
                 </div>
             </div>
-
-            {/* Modal de Confirmação de Exclusão */}
-            {isDeleteModalOpen && notaToDelete && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h2>Confirmar Exclusão</h2>
-                        <p>
-                            Tem certeza que deseja excluir permanentemente a nota fiscal nº:
-                            <strong className="item-to-delete">{notaToDelete.numero}</strong>?
-                        </p>
-                        <p className="delete-warning">Esta ação não pode ser desfeita e removerá todos os itens associados a esta nota.</p>
-                        <div className="modal-actions">
-                            <button className="btn-modal cancel" onClick={handleCloseDeleteModal} disabled={isDeleting}>
-                                Cancelar
-                            </button>
-                            <button className="btn-modal danger" onClick={handleDeleteNota} disabled={isDeleting}>
-                                {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteNota}
+                nota={notaToDelete}
+                isDeleting={isDeleting}
+            />
         </>
     );
 }

@@ -1,53 +1,256 @@
+/* Importando uma fonte do Google Fonts para um visual mais moderno */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+/* Reset básico e configurações do corpo da página */
 body {
-  background-color: #f1f1f1;
-  font-family: 'PT Sans', sans-serif;
-}
-
-#login-container {
-  width: 30vw;
-  background-color: white;
-  border-radius: 10px;
-  padding: 50px;
-  text-align: center;
-  height: max-content;
-  position: relative;
-  top: 50vh;
-  left: 50vw;
-  transform: translate(-50%, -50%);
-}
-
-
-.action {
-  display: flex;
-  flex-flow: column;
-}
-.action h1 {
   margin: 0;
-  margin-bottom: 50px;
-  font-family: 'PT Sans', sans-serif;
-}
-.action input {
-  height: 30px;
-  padding: 7px;
-  font-size: 1.1rem;
-  text-align: center;
-}
-.action button {
-  border: none;
-  padding: 15px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  background-color: #334c9b;
-  color: white;
-  margin-top: 10px;
+  font-family: 'Poppins', sans-serif;
+  /* --- ALTERADO --- */
+  /* Cor de fundo escura que combina com o gradiente */
+  background-color: #083427;
+  color: #333;
 }
 
-.show-password-container {
+/* Container principal que centraliza o painel de login na tela */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
+  /* --- NOVO: APLICANDO O GRADIENTE AQUI --- */
+  /* Este é o gradiente verde da imagem de referência */
+  background: linear-gradient(135deg, #083427, #00BF63);
+}
+
+/* O painel principal que contém as duas colunas */
+.login-panel {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 650px;
+  /* --- ALTERADO --- */
+  /* Tornamos o painel transparente para mostrar o gradiente do .login-page */
+  background-color: transparent;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* Coluna da Esquerda (Formulário) */
+.login-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  /* --- ALTERADO --- */
+  /* Removemos o fundo para que o gradiente principal apareça */
+  background: transparent;
+}
+
+/* A "caixa" branca que envolve o formulário */
+.form-box {
+  width: 100%;
+  max-width: 360px;
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Estilos da Logo */
+.logo {
+  margin-bottom: 25px;
+}
+.logo-main {
+  font-size: 28px;
+  font-weight: 700;
+  color: #222;
+}
+.logo-sub {
+  font-size: 12px;
+  font-weight: 700;
+  /* --- ALTERADO --- */
+  /* Verde vibrante para combinar com o gradiente */
+  color: #00D46A;
+  letter-spacing: 0.5px;
+}
+
+/* Título "Acesse o Portal de Gestão" */
+.form-box h2 {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #666;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+.form-box h2 strong {
+  font-weight: 700;
+  color: #333;
+}
+
+.input-group {
+  margin-bottom: 25px;
   text-align: left;
-  display: flex;
+}
+.input-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
 
-.show-password-container > label {
-  margin: 0;
-  line-height: 2.3rem;
+.input-group input {
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+}
+
+/* Estilo para o campo USUÁRIO (com borda completa) */
+#user {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 15px;
+  transition: border-color 0.3s;
+}
+#user:focus {
+  /* --- ALTERADO --- */
+  border-color: #00D46A;
+}
+
+/* Estilo para o campo SENHA (apenas linha inferior) */
+#password {
+  border: none;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 12px 2px;
+  border-radius: 0;
+  transition: border-bottom-color 0.3s;
+}
+#password:focus {
+  /* --- ALTERADO --- */
+  border-bottom-color: #00D46A;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 30px;
+}
+.keep-connected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+.keep-connected input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.keep-connected input[type="checkbox"]:checked {
+  /* --- ALTERADO --- */
+  background-color: #00D46A;
+  border-color: #00D46A;
+}
+
+.forgot-password {
+  color: #666;
+  text-decoration: none;
+}
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Botão de Entrar */
+form button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  /* --- ALTERADO --- */
+  background-color: #00D46A;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+form button:hover {
+  /* --- ALTERADO --- */
+  background-color: #00b359; /* Um tom um pouco mais escuro para o hover */
+}
+
+/* Coluna da Direita (Painel de Imagem) */
+.login-image-container {
+  flex: 1;
+  /* --- ALTERADO --- */
+  /* Fundo transparente para o gradiente principal aparecer */
+  background: transparent;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Adicione aqui as suas imagens (homem, mulher, veículos) */
+}
+
+/* Botão da Central de Atendimento */
+.support-button {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  /* --- ALTERADO --- */
+  background-color: #00D46A;
+  color: white;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out, background-color 0.2s;
+}
+.support-button:hover {
+  transform: scale(1.05);
+  /* --- ALTERADO --- */
+  background-color: #00b359;
+}
+
+@media (max-width: 850px) {
+  .login-panel {
+    flex-direction: column;
+    min-height: auto;
+    width: 95%;
+    max-width: 450px;
+    /* --- NOVO --- */
+    /* Garante que o gradiente ainda apareça no fundo em telas menores */
+    background: transparent;
+    box-shadow: none; /* Remove a sombra para um visual mais limpo */
+  }
+  .login-image-container {
+    display: none;
+  }
+  /* --- NOVO --- */
+  .login-form-container {
+    /* Garante que não haja fundo colorido extra no mobile */
+    background: transparent;
+  }
 }

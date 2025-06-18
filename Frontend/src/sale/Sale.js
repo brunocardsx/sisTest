@@ -4,42 +4,182 @@ import Select from 'react-select';
 import api from '../services/api';
 import './sale.css';
 
-// Forçando um novo deploy para o Vercel - 17/06/2024
-// Estilos customizados (inalterado)
-const customSelectStyles = {
-  control: (provided, state) => ({
-    ...provided, minHeight: '42px', border: state.isFocused ? '1px solid #2563EB' : '1px solid #D1D5DB', borderRadius: '6px',
-    boxShadow: state.isFocused ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : 'none',
-    '&:hover': { borderColor: state.isFocused ? '#2563EB' : '#9CA3AF' },
-  }),
-  option: (provided, state) => ({
-    ...provided, backgroundColor: state.isSelected ? '#2563EB' : state.isFocused ? '#DBEAFE' : 'white',
-    color: state.isSelected ? 'white' : '#111827',
-  }),
-  placeholder: (provided) => ({ ...provided, color: '#9CA3AF' }),
+// ===================================================================================
+//  1. CONSTANTES E COMPONENTES DE UI "BURROS" (PRESENTATIONAL COMPONENTS)
+//     Movidos para fora do componente principal para maior clareza e reutilização.
+// ===================================================================================
+
+// Estilos customizados para o react-select no tema dark
+const darkSelectStyles = {
+  control: (p) => ({ ...p, backgroundColor: '#1C1D21', borderColor: '#3B3E47', minHeight: '48px', borderRadius: '8px', boxShadow: 'none', '&:hover': { borderColor: '#2DD4BF' } }),
+  menu: (p) => ({ ...p, backgroundColor: '#2A2D35', border: '1px solid #3B3E47' }),
+  option: (p, s) => ({ ...p, backgroundColor: s.isSelected ? '#2DD4BF' : s.isFocused ? '#353842' : 'transparent', color: s.isSelected ? '#1C1D21' : '#F0F2F5', fontWeight: s.isSelected ? '600' : '400', '&:active': { backgroundColor: '#353842' } }),
+  singleValue: (p) => ({ ...p, color: '#F0F2F5' }),
+  input: (p) => ({ ...p, color: '#F0F2F5' }),
+  placeholder: (p) => ({ ...p, color: '#8A91A0' }),
 };
 
+// --- Componente para o Formulário de Lançamento ---
+const SaleForm = ({
+                    invoiceNumber, setInvoiceNumber, invoiceDate, setInvoiceDate,
+                    obraOptions, obraId, handleObraSelect,
+                    productOptions, currentProduct, handleProductSelect, handleCreateProduct,
+                    addProductToInvoice, handleOpenDeleteModal,
+                    isSavingInvoice, saveInvoice, selectedItems, msg,
+                    quantityInputRef, setCurrentProduct, handleInputKeyDown
+                  }) => (
+    <div className="sale-card">
+      <h2 className="sale-card-title">Lançamento de Nota Fiscal</h2>
+
+      <div className="form-group">
+        <label>Número da Nota Fiscal</label>
+        <input type="text" className="form-input" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Digite o número da nota" />
+      </div>
+      <div className="form-group">
+        <label>Selecione uma Obra</label>
+        <Select options={obraOptions} onChange={handleObraSelect} value={obraOptions.find(o => o.value === obraId)} placeholder="Selecione..." styles={darkSelectStyles} isClearable />
+      </div>
+      <div className="form-group">
+        <label>Data da Nota Fiscal</label>
+        <input type="date" className="form-input" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+      </div>
+      <div className="form-group">
+        <label>Selecione ou Crie um Produto</label>
+        <CreatableSelect isClearable options={productOptions} onChange={handleProductSelect} onCreateOption={handleCreateProduct} value={currentProduct} placeholder="Pesquise ou digite para criar..." formatCreateLabel={(val) => `Criar produto: "${val}"`} styles={darkSelectStyles} />
+      </div>
+
+      {currentProduct && (
+          <>
+            <button type="button" className="btn-delete-product" onClick={handleOpenDeleteModal}>
+              Excluir produto "{currentProduct.label}"?
+            </button>
+            <div className="product-entry-grid">
+              <div className="form-group">
+                <label>Quantidade</label>
+                <input ref={quantityInputRef} type="number" min="0" className="form-input" placeholder="0" onChange={(e) => setCurrentProduct({ ...currentProduct, quantity: e.target.value })} value={currentProduct.quantity || ''} onKeyDown={handleInputKeyDown} />
+              </div>
+              <div className="form-group">
+                <label>Valor Unitário (R$)</label>
+                <input type="number" min="0" step="0.01" className="form-input" placeholder="0.00" onChange={(e) => setCurrentProduct({ ...currentProduct, unitPrice: e.target.value })} value={currentProduct.unitPrice || ''} onKeyDown={handleInputKeyDown} />
+              </div>
+            </div>
+            <button className="btn btn-primary btn-full-width" onClick={addProductToInvoice}>
+              Adicionar Produto
+            </button>
+          </>
+      )}
+
+      {msg.show && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
+
+      <div style={{ marginTop: 'auto' }}>
+        <button className="btn btn-success btn-full-width" onClick={saveInvoice} disabled={isSavingInvoice || selectedItems.length === 0}>
+          {isSavingInvoice ? 'Salvando Nota...' : 'Salvar Nota Fiscal'}
+        </button>
+      </div>
+    </div>
+);
+
+// --- Componente para a Tabela de Itens ---
+const InvoiceItems = ({ items, onRemoveItem, total }) => (
+    <div className="sale-card items-list-card">
+      <h3 className="sale-card-title">Itens da Nota</h3>
+      <div className="items-table-container">
+        <table className="items-table">
+          <thead>
+          <tr><th>Produto</th><th>Qtd.</th><th className="text-right">Vlr. Unit.</th><th className="text-right">Total</th><th></th></tr>
+          </thead>
+          <tbody>
+          {items.length > 0 ? (
+              items.map((item) => (
+                  <tr key={item.value}>
+                    <td>{item.label}</td>
+                    <td>{item.quantity}</td>
+                    <td className="text-right">R$ {Number(item.unitPrice).toFixed(2)}</td>
+                    <td className="text-right">R$ {Number(item.totalValue).toFixed(2)}</td>
+                    <td><button className="btn-remove" title="Remover" onClick={() => onRemoveItem(item.value)}><i className="fas fa-times"></i></button></td>
+                  </tr>
+              ))
+          ) : (
+              <tr className="empty-row"><td colSpan="5">Nenhum item adicionado.</td></tr>
+          )}
+          </tbody>
+        </table>
+      </div>
+      <div className="total-summary">
+        <strong>Total:</strong>
+        <span>R$ {total}</span>
+      </div>
+    </div>
+);
+
+// --- Componentes para os Modais ---
+const CreateProductModal = ({ isOpen, onClose, onSave, newProductName, setNewProductName, isSaving }) => {
+  if (!isOpen) return null;
+  return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <h2>Criar Novo Produto</h2>
+          <div className="form-group">
+            <label>Nome do Produto</label>
+            <input type="text" className="form-input" value={newProductName} onChange={(e) => setNewProductName(e.target.value)} autoFocus />
+          </div>
+          <div className="modal-actions">
+            <button className="btn btn-modal cancel" onClick={onClose} disabled={isSaving}>Cancelar</button>
+            <button className="btn btn-modal save" onClick={onSave} disabled={isSaving || !newProductName.trim()}>
+              {isSaving ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+        </div>
+      </div>
+  );
+};
+
+const DeleteProductModal = ({ isOpen, onClose, onConfirm, productName, isDeleting }) => {
+  if (!isOpen) return null;
+  return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <h2>Confirmar Exclusão</h2>
+          <p>Deseja excluir o produto <strong className="product-to-delete">{productName}</strong>?</p>
+          <p className='delete-warning'>Esta ação não pode ser desfeita.</p>
+          <div className="modal-actions">
+            <button className="btn btn-modal cancel" onClick={onClose} disabled={isDeleting}>Cancelar</button>
+            <button className="btn btn-modal danger" onClick={onConfirm} disabled={isDeleting}>
+              {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+            </button>
+          </div>
+        </div>
+      </div>
+  );
+};
+
+
+// ===================================================================================
+//  2. COMPONENTE PRINCIPAL (CONTAINER COMPONENT)
+//     Responsável por toda a lógica de estado, API e manipulação de eventos.
+// ===================================================================================
+
 export default function Sale() {
-  // Estados
+  // --- Estados do Formulário e Dados ---
   const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [productOptions, setProductOptions] = useState([]);
+  const [invoiceDate, setInvoiceDate] = useState('');
+  const [obraId, setObraId] = useState(null);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [msg, setMsg] = useState({ show: false, type: '', text: '' });
-  const [obraId, setObraId] = useState(null);
   const [obraOptions, setObraOptions] = useState([]);
-  const [invoiceDate, setInvoiceDate] = useState('');
-  const [isSavingInvoice, setIsSavingInvoice] = useState(false);
+  const [productOptions, setProductOptions] = useState([]);
+  const quantityInputRef = useRef(null);
 
-  // Modais
+  // --- Estados de UI (Modais, Carregamento, Mensagens) ---
+  const [msg, setMsg] = useState({ show: false, type: '', text: '' });
+  const [isSavingInvoice, setIsSavingInvoice] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
-  const quantityInputRef = useRef(null);
-
+  // --- Efeitos Colaterais (Side Effects) ---
   useEffect(() => {
     fetchProducts();
     fetchObras();
@@ -47,11 +187,12 @@ export default function Sale() {
 
   useEffect(() => {
     if (msg.show) {
-      const timeout = setTimeout(() => setMsg({ show: false, type: '', text: '' }), 4000);
-      return () => clearTimeout(timeout);
+      const timer = setTimeout(() => setMsg({ show: false, type: '', text: '' }), 4000);
+      return () => clearTimeout(timer);
     }
   }, [msg]);
 
+  // --- Funções Auxiliares e de Lógica ---
   const showMsg = (type, text) => setMsg({ show: true, type, text });
 
   const resetForm = () => {
@@ -62,6 +203,9 @@ export default function Sale() {
     setCurrentProduct(null);
   };
 
+  const calculateTotal = () => selectedItems.reduce((acc, item) => acc + item.totalValue, 0).toFixed(2);
+
+  // --- Funções de API ---
   async function fetchProducts() {
     try {
       const { data } = await api.get('/api/produto');
@@ -70,121 +214,55 @@ export default function Sale() {
         setProductOptions(products);
         return products;
       }
-      return [];
-    } catch (error) {
-      showMsg('error', 'Falha ao buscar produtos.');
-      return [];
-    }
+    } catch (error) { showMsg('error', 'Falha ao buscar produtos.'); }
+    return [];
   }
+
   async function fetchObras() {
     try {
       const { data } = await api.get('/api/obras');
       if (data.status && data.obras) {
-        const obras = data.obras.map((o) => ({ value: o.id, label: o.nome }));
-        setObraOptions(obras);
+        setObraOptions(data.obras.map((o) => ({ value: o.id, label: o.nome })));
       }
-    } catch (error) {
-      showMsg('error', 'Falha ao buscar obras.');
-    }
+    } catch (error) { showMsg('error', 'Falha ao buscar obras.'); }
   }
-
-  function handleProductSelect(option) {
-    if (option) {
-      setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
-      setTimeout(() => quantityInputRef.current?.focus(), 100);
-    } else {
-      setCurrentProduct(null);
-    }
-  }
-
-  const handleCreateProduct = (inputValue) => {
-    setNewProductName(inputValue);
-    setIsCreateModalOpen(true);
-  };
 
   const handleSaveNewProduct = async () => {
-    if (!newProductName.trim()) {
-      showMsg('error', 'O nome do produto não pode ser vazio.');
-      return;
-    }
+    if (!newProductName.trim()) return;
     setIsSavingProduct(true);
     try {
       const response = await api.post('/api/produto', { nome: newProductName.trim() });
-      if (response.data && response.data.status) {
-        showMsg('success', `Produto "${newProductName}" criado com sucesso!`);
+      if (response.data?.status) {
+        showMsg('success', `Produto "${newProductName}" criado!`);
         setIsCreateModalOpen(false);
         setNewProductName('');
         const updatedProducts = await fetchProducts();
         const newProduct = updatedProducts.find(p => p.id === response.data.produto.id);
-        if (newProduct) {
-          handleProductSelect(newProduct);
-        }
-      } else {
-        showMsg('error', response.data.message || 'Erro ao criar produto.');
-      }
-    } catch (error) {
-      showMsg('error', error.response?.data?.message || 'Erro de conexão.');
-    } finally {
-      setIsSavingProduct(false);
-    }
+        if (newProduct) handleProductSelect(newProduct);
+      } else { showMsg('error', response.data.message || 'Erro ao criar produto.'); }
+    } catch (error) { showMsg('error', error.response?.data?.message || 'Erro de conexão.'); }
+    finally { setIsSavingProduct(false); }
   };
-
-  const handleOpenDeleteModal = () => { if (currentProduct) setIsDeleteModalOpen(true); };
 
   const handleDeleteProduct = async () => {
     if (!currentProduct) return;
     setIsDeletingProduct(true);
     try {
       const response = await api.delete(`/api/produto/${currentProduct.value}`);
-      if (response.data && response.data.status) {
-        showMsg('success', `Produto "${currentProduct.label}" excluído com sucesso.`);
+      if (response.data?.status) {
+        showMsg('success', `Produto "${currentProduct.label}" excluído.`);
         setIsDeleteModalOpen(false);
         setCurrentProduct(null);
         fetchProducts();
-      } else {
-        showMsg('error', response.data.message || 'Erro ao excluir o produto.');
-      }
-    } catch (error) {
-      showMsg('error', error.response?.data?.message || 'Erro de conexão.');
-    } finally {
-      setIsDeletingProduct(false);
-    }
-  };
-
-  function handleObraSelect(option) {
-    setObraId(option ? option.value : null);
-  }
-
-  function addProductToInvoice() {
-    if (!currentProduct || !currentProduct.quantity || !currentProduct.unitPrice) {
-      return showMsg('error', 'Preencha a quantidade e o valor do produto.');
-    }
-    const totalValue = Number(currentProduct.quantity) * Number(currentProduct.unitPrice);
-    setSelectedItems((prev) => [...prev, { ...currentProduct, quantity: Number(currentProduct.quantity), unitPrice: Number(currentProduct.unitPrice), totalValue }]);
-    setCurrentProduct(null);
-  }
-
-  function removeProductFromInvoice(id) {
-    setSelectedItems((prev) => prev.filter((item) => item.value !== id));
-  }
-
-  function calculateTotal() {
-    return selectedItems.reduce((acc, item) => acc + item.totalValue, 0).toFixed(2);
-  }
-
-  const handleInputKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addProductToInvoice();
-    }
+      } else { showMsg('error', response.data.message || 'Erro ao excluir.'); }
+    } catch (error) { showMsg('error', error.response?.data?.message || 'Erro de conexão.'); }
+    finally { setIsDeletingProduct(false); }
   };
 
   async function saveInvoice() {
-    if (!invoiceNumber.trim()) return showMsg('error', 'O número da nota fiscal é obrigatório.');
-    if (!obraId) return showMsg('error', 'Selecione uma obra.');
-    if (!invoiceDate) return showMsg('error', 'A data da nota fiscal é obrigatória.');
-    if (selectedItems.length === 0) return showMsg('error', 'Adicione pelo menos um item à nota.');
-
+    if (!invoiceNumber.trim() || !obraId || !invoiceDate || selectedItems.length === 0) {
+      return showMsg('error', 'Preencha todos os campos e adicione itens à nota.');
+    }
     setIsSavingInvoice(true);
     const invoicePayload = {
       numero: invoiceNumber.trim(),
@@ -198,152 +276,79 @@ export default function Sale() {
     };
     try {
       const response = await api.post('/api/notas-fiscais', invoicePayload);
-      if (response.data && response.data.status) {
+      if (response.data?.status) {
         showMsg('success', 'Nota fiscal salva com sucesso!');
         resetForm();
-      } else {
-        showMsg('error', response.data.message || 'Erro ao salvar a nota.');
-      }
-    } catch (error) {
-      console.error("Erro ao salvar nota:", error.response || error);
-      showMsg('error', error.response?.data?.message || 'Erro de conexão com o servidor.');
-    } finally {
-      setIsSavingInvoice(false);
-    }
+      } else { showMsg('error', response.data.message || 'Erro ao salvar a nota.'); }
+    } catch (error) { showMsg('error', error.response?.data?.message || 'Erro de conexão com o servidor.'); }
+    finally { setIsSavingInvoice(false); }
   }
 
+  // --- Manipuladores de Eventos (Event Handlers) ---
+  const handleProductSelect = (option) => {
+    if (option) {
+      setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
+      setTimeout(() => quantityInputRef.current?.focus(), 100);
+    } else {
+      setCurrentProduct(null);
+    }
+  };
+
+  const addProductToInvoice = () => {
+    if (!currentProduct || !currentProduct.quantity || !currentProduct.unitPrice) {
+      return showMsg('error', 'Preencha a quantidade e o valor do produto.');
+    }
+    const totalValue = Number(currentProduct.quantity) * Number(currentProduct.unitPrice);
+    setSelectedItems((prev) => [...prev, { ...currentProduct, quantity: Number(currentProduct.quantity), unitPrice: Number(currentProduct.unitPrice), totalValue }]);
+    setCurrentProduct(null);
+  };
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addProductToInvoice();
+    }
+  };
+
+  // --- Renderização do Componente ---
+  // O JSX agora é muito mais limpo, delegando a UI para os componentes filhos.
   return (
       <>
-        <div className="sale-page-container">
-          <div className="sale-card">
-            <h2 className="sale-card-title">Lançamento de Nota Fiscal</h2>
-            <div className="sale-form-group">
-              <label>Número da Nota Fiscal</label>
-              <input type="text" className="sale-input" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Digite o número da nota" />
-            </div>
-            <div className="sale-form-group">
-              <label>Selecione uma Obra</label>
-              <Select options={obraOptions} onChange={handleObraSelect} value={obraOptions.find(o => o.value === obraId) || null} placeholder="Selecione uma obra..." styles={customSelectStyles} isClearable />
-            </div>
-            <div className="sale-form-group">
-              <label>Data da Nota Fiscal</label>
-              <input type="date" className="sale-input" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-            </div>
-            <div className="sale-form-group">
-              <label>Selecione ou Crie um Produto</label>
-              <CreatableSelect isClearable options={productOptions} onChange={handleProductSelect} onCreateOption={handleCreateProduct} value={currentProduct} placeholder="Pesquise ou digite para criar..." formatCreateLabel={(inputValue) => `Criar produto: "${inputValue}"`} styles={customSelectStyles} />
-            </div>
-            {currentProduct && (
-                <>
-                  <button type="button" className="sale-btn-delete-product" onClick={handleOpenDeleteModal}>
-                    <i className="fas fa-trash-alt"></i> Excluir produto "{currentProduct.label}"
-                  </button>
-                  <div className="sale-product-details">
-                    <div className="sale-form-group">
-                      <label>Quantidade</label>
-                      <input ref={quantityInputRef} type="number" min="0" className="sale-input" placeholder="0" onChange={(e) => setCurrentProduct({ ...currentProduct, quantity: e.target.value })} value={currentProduct.quantity || ''} onKeyDown={handleInputKeyDown} />
-                    </div>
-                    <div className="sale-form-group">
-                      <label>Valor Unitário (R$)</label>
-                      <input type="number" min="0" step="0.01" className="sale-input" placeholder="0.00" onChange={(e) => setCurrentProduct({ ...currentProduct, unitPrice: e.target.value })} value={currentProduct.unitPrice || ''} onKeyDown={handleInputKeyDown} />
-                    </div>
-                  </div>
-                  <button className="sale-btn sale-btn-add" onClick={addProductToInvoice}>
-                    Adicionar Produto à Nota
-                  </button>
-                </>
-            )}
-            {msg.show && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
-            <button className="sale-btn sale-btn-save" onClick={saveInvoice} disabled={isSavingInvoice || selectedItems.length === 0}>
-              {isSavingInvoice ? 'Salvando...' : 'Salvar Nota Fiscal'}
-            </button>
-          </div>
-
-          {/* <<< CORREÇÃO: CARD DE ITENS DA NOTA RESTAURADO ABAIXO >>> */}
-          <div className="sale-card">
-            <h3 className="sale-card-title">Itens da Nota</h3>
-            <div className="sale-items-table-container">
-              <table className="sale-items-table">
-                <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Qtd.</th>
-                  <th className="col-numeric">Vlr. Unit.</th>
-                  <th className="col-numeric">Vlr. Total</th>
-                  <th className="col-actions">Ação</th>
-                </tr>
-                </thead>
-                <tbody>
-                {selectedItems.length > 0 ? (
-                    selectedItems.map((item) => (
-                        <tr key={item.value}>
-                          <td>{item.label}</td>
-                          <td>{item.quantity}</td>
-                          <td className="col-numeric">R$ {Number(item.unitPrice).toFixed(2)}</td>
-                          <td className="col-numeric">R$ {Number(item.totalValue).toFixed(2)}</td>
-                          <td className="col-actions">
-                            <button className="sale-btn-remove" title="Remover Item" onClick={() => removeProductFromInvoice(item.value)}>
-                              <i className="fas fa-trash-alt"></i>
-                            </button>
-                          </td>
-                        </tr>
-                    ))
-                ) : (
-                    <tr className="empty-row">
-                      <td colSpan="5">Nenhum item adicionado.</td>
-                    </tr>
-                )}
-                </tbody>
-              </table>
-            </div>
-            <div className="sale-total">
-              <strong>Total da Nota: R$ {calculateTotal()}</strong>
-            </div>
-          </div>
+        <div className="sale-page-wrapper">
+          <SaleForm
+              invoiceNumber={invoiceNumber} setInvoiceNumber={setInvoiceNumber}
+              invoiceDate={invoiceDate} setInvoiceDate={setInvoiceDate}
+              obraOptions={obraOptions} obraId={obraId} handleObraSelect={(opt) => setObraId(opt ? opt.value : null)}
+              productOptions={productOptions} currentProduct={currentProduct} setCurrentProduct={setCurrentProduct}
+              handleProductSelect={handleProductSelect} handleCreateProduct={(val) => { setNewProductName(val); setIsCreateModalOpen(true); }}
+              addProductToInvoice={addProductToInvoice} handleOpenDeleteModal={() => setIsDeleteModalOpen(true)}
+              isSavingInvoice={isSavingInvoice} saveInvoice={saveInvoice}
+              selectedItems={selectedItems} msg={msg}
+              quantityInputRef={quantityInputRef} handleInputKeyDown={handleInputKeyDown}
+          />
+          <InvoiceItems
+              items={selectedItems}
+              onRemoveItem={(id) => setSelectedItems((prev) => prev.filter((item) => item.value !== id))}
+              total={calculateTotal()}
+          />
         </div>
 
-        {/* --- Modais --- */}
-        {isCreateModalOpen && (
-            <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2>Criar Novo Produto</h2>
-                <p>Digite o nome do novo produto que deseja cadastrar.</p>
-                <div className="sale-form-group">
-                  <label>Nome do Produto</label>
-                  <input type="text" className="sale-input" value={newProductName} onChange={(e) => setNewProductName(e.target.value)} autoFocus />
-                </div>
-                <div className="modal-actions">
-                  <button className="btn-modal cancel" onClick={() => setIsCreateModalOpen(false)} disabled={isSavingProduct}>
-                    Cancelar
-                  </button>
-                  <button className="btn-modal save" onClick={handleSaveNewProduct} disabled={isSavingProduct || !newProductName.trim()}>
-                    {isSavingProduct ? 'Salvando...' : 'Salvar Produto'}
-                  </button>
-                </div>
-              </div>
-            </div>
-        )}
+        <CreateProductModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            onSave={handleSaveNewProduct}
+            newProductName={newProductName}
+            setNewProductName={setNewProductName}
+            isSaving={isSavingProduct}
+        />
 
-        {isDeleteModalOpen && currentProduct && (
-            <div className="modal-overlay" onClick={() => setIsDeleteModalOpen(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2>Confirmar Exclusão</h2>
-                <p>
-                  Você tem certeza que deseja excluir o produto
-                  <span className="product-to-delete">{currentProduct.label}</span>?
-                </p>
-                <p className='delete-warning'>Esta ação não pode ser desfeita.</p>
-                <div className="modal-actions">
-                  <button className="btn-modal cancel" onClick={() => setIsDeleteModalOpen(false)} disabled={isDeletingProduct}>
-                    Cancelar
-                  </button>
-                  <button className="btn-modal danger" onClick={handleDeleteProduct} disabled={isDeletingProduct}>
-                    {isDeletingProduct ? 'Excluindo...' : 'Sim, Excluir'}
-                  </button>
-                </div>
-              </div>
-            </div>
-        )}
+        <DeleteProductModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onConfirm={handleDeleteProduct}
+            productName={currentProduct?.label || ''}
+            isDeleting={isDeletingProduct}
+        />
       </>
   );
 }
