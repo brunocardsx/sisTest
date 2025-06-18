@@ -5,8 +5,6 @@
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
-  /* --- ALTERADO --- */
-  /* Cor de fundo escura que combina com o gradiente */
   background-color: #083427;
   color: #333;
 }
@@ -19,8 +17,6 @@ body {
   min-height: 100vh;
   padding: 2rem;
   box-sizing: border-box;
-  /* --- NOVO: APLICANDO O GRADIENTE AQUI --- */
-  /* Este é o gradiente verde da imagem de referência */
   background: linear-gradient(135deg, #083427, #00BF63);
 }
 
@@ -30,8 +26,6 @@ body {
   width: 100%;
   max-width: 1000px;
   min-height: 650px;
-  /* --- ALTERADO --- */
-  /* Tornamos o painel transparente para mostrar o gradiente do .login-page */
   background-color: transparent;
   border-radius: 20px;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
@@ -45,8 +39,6 @@ body {
   justify-content: center;
   align-items: center;
   padding: 40px;
-  /* --- ALTERADO --- */
-  /* Removemos o fundo para que o gradiente principal apareça */
   background: transparent;
 }
 
@@ -74,8 +66,6 @@ body {
 .logo-sub {
   font-size: 12px;
   font-weight: 700;
-  /* --- ALTERADO --- */
-  /* Verde vibrante para combinar com o gradiente */
   color: #00D46A;
   letter-spacing: 0.5px;
 }
@@ -126,7 +116,6 @@ body {
   transition: border-color 0.3s;
 }
 #user:focus {
-  /* --- ALTERADO --- */
   border-color: #00D46A;
 }
 
@@ -139,7 +128,6 @@ body {
   transition: border-bottom-color 0.3s;
 }
 #password:focus {
-  /* --- ALTERADO --- */
   border-bottom-color: #00D46A;
 }
 
@@ -165,7 +153,6 @@ body {
   cursor: pointer;
 }
 .keep-connected input[type="checkbox"]:checked {
-  /* --- ALTERADO --- */
   background-color: #00D46A;
   border-color: #00D46A;
 }
@@ -184,7 +171,6 @@ form button {
   padding: 15px;
   border: none;
   border-radius: 8px;
-  /* --- ALTERADO --- */
   background-color: #00D46A;
   color: white;
   font-size: 16px;
@@ -193,21 +179,17 @@ form button {
   transition: background-color 0.3s;
 }
 form button:hover {
-  /* --- ALTERADO --- */
-  background-color: #00b359; /* Um tom um pouco mais escuro para o hover */
+  background-color: #00b359;
 }
 
 /* Coluna da Direita (Painel de Imagem) */
 .login-image-container {
   flex: 1;
-  /* --- ALTERADO --- */
-  /* Fundo transparente para o gradiente principal aparecer */
   background: transparent;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Adicione aqui as suas imagens (homem, mulher, veículos) */
 }
 
 /* Botão da Central de Atendimento */
@@ -218,7 +200,6 @@ form button:hover {
   display: inline-flex;
   align-items: center;
   padding: 12px 22px;
-  /* --- ALTERADO --- */
   background-color: #00D46A;
   color: white;
   border-radius: 30px;
@@ -230,27 +211,56 @@ form button:hover {
 }
 .support-button:hover {
   transform: scale(1.05);
-  /* --- ALTERADO --- */
   background-color: #00b359;
 }
 
+/* --- RESPONSIVIDADE PARA TABLETS E TELAS MENORES --- */
 @media (max-width: 850px) {
   .login-panel {
     flex-direction: column;
     min-height: auto;
     width: 95%;
     max-width: 450px;
-    /* --- NOVO --- */
-    /* Garante que o gradiente ainda apareça no fundo em telas menores */
     background: transparent;
-    box-shadow: none; /* Remove a sombra para um visual mais limpo */
+    box-shadow: none;
   }
   .login-image-container {
     display: none;
   }
-  /* --- NOVO --- */
   .login-form-container {
-    /* Garante que não haja fundo colorido extra no mobile */
+    padding: 20px 0; /* Reduz o padding vertical e remove o horizontal */
     background: transparent;
+  }
+}
+
+/* --- AJUSTES FINOS ESPECÍFICOS PARA CELULARES --- */
+@media (max-width: 480px) {
+  /* Reduz o espaçamento geral da página */
+  .login-page {
+    padding: 1rem;
+  }
+
+  /* Reduz o padding interno do formulário para dar mais espaço ao conteúdo */
+  .form-box {
+    padding: 24px;
+  }
+
+  /* Ajusta o tamanho da fonte do logo e dos botões */
+  .logo-main {
+    font-size: 24px;
+  }
+  .form-box h2 {
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+  }
+  .input-group {
+    margin-bottom: 20px;
+  }
+  form button {
+    padding: 12px;
+    font-size: 15px;
+  }
+  .form-options {
+    font-size: 12px;
   }
 }
