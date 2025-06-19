@@ -3,9 +3,9 @@
     --db-bg-main: #1C1D21;
     --db-bg-card: #2A2D35;
     --db-text-primary: #F0F2F5;
-    /* FIX: Aumenta o brilho dos textos secundários e de labels para melhorar a legibilidade */
-    --db-text-secondary: #CED4DE;
-    --db-text-label: #A9B1C2;
+    /* FIX: Aumenta ainda mais o brilho dos textos para máxima legibilidade */
+    --db-text-secondary: #E2E8F0; /* Mais claro que antes */
+    --db-text-label: #CBD5E1;   /* Significativamente mais claro */
     --db-accent-primary: #2DD4BF;
     --db-accent-danger: #F47174;
     --db-border-color: #3B3E47;
