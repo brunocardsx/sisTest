@@ -2,10 +2,12 @@
 :root {
     --db-bg-main: #1C1D21;
     --db-bg-card: #2A2D35;
-    --db-text-primary: #F0F2F5;
-    /* FIX: Aumenta ainda mais o brilho dos textos para máxima legibilidade */
-    --db-text-secondary: #E2E8F0; /* Mais claro que antes */
-    --db-text-label: #CBD5E1;   /* Significativamente mais claro */
+    --db-text-primary: #F0F2F5; /* Cor principal para títulos e agora para dados */
+
+    /* FIX: Estratégia de contraste revisada para destacar os dados */
+    --db-text-secondary: #F0F2F5; /* Dados importantes com a cor mais brilhante */
+    --db-text-label: #A9B1C2;      /* Rótulos e cabeçalhos com um tom mais suave para hierarquia */
+
     --db-accent-primary: #2DD4BF;
     --db-accent-danger: #F47174;
     --db-border-color: #3B3E47;
@@ -102,7 +104,7 @@
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; }
 .info-grid p { margin: 0; font-size: 0.9rem; }
 .info-grid p strong { color: var(--db-text-label); font-weight: 500; }
-.info-grid p span { color: var(--db-text-secondary); }
+.info-grid p span { color: var(--db-text-secondary); font-weight: 500; } /* Dando um leve peso para os dados */
 
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table th, .items-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--db-border-color); }
@@ -110,8 +112,19 @@
 .items-table td { font-size: 0.9rem; color: var(--db-text-secondary); }
 .items-table .text-right { text-align: right; }
 .items-table .action-col { text-align: center; }
-.action-col .btn { padding: 4px 8px; font-size: 0.8rem; background-color: var(--db-bg-main); color: var(--db-text-label); }
-.action-col .btn:hover:not(:disabled) { background-color: var(--db-accent-danger); color: white; }
+
+/* FIX: Deixa o botão de excluir na tabela bem mais visível */
+.action-col .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    background-color: var(--db-bg-main);
+    color: var(--db-text-secondary); /* Usa a cor mais forte */
+    font-weight: 500;
+}
+.action-col .btn:hover:not(:disabled) {
+    background-color: var(--db-accent-danger);
+    color: white;
+}
 
 /* --- Feedback e Modais --- */
 .feedback-message { padding: 12px; border-radius: 8px; font-weight: 500; text-align: center; }
