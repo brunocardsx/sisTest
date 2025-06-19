@@ -112,7 +112,6 @@ const InvoiceItems = ({ items, onRemoveItem, total }) => (
     </div>
 );
 
-// --- Componentes para os Modais ---
 const CreateProductModal = ({ isOpen, onClose, onSave, newProductName, setNewProductName, isSaving }) => {
   if (!isOpen) return null;
   return (
@@ -153,14 +152,7 @@ const DeleteProductModal = ({ isOpen, onClose, onConfirm, productName, isDeletin
   );
 };
 
-
-// ===================================================================================
-//  2. COMPONENTE PRINCIPAL (CONTAINER COMPONENT)
-//     Responsável por toda a lógica de estado, API e manipulação de eventos.
-// ===================================================================================
-
 export default function Sale() {
-  // --- Estados do Formulário e Dados ---
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState('');
   const [obraId, setObraId] = useState(null);
@@ -170,7 +162,6 @@ export default function Sale() {
   const [productOptions, setProductOptions] = useState([]);
   const quantityInputRef = useRef(null);
 
-  // --- Estados de UI (Modais, Carregamento, Mensagens) ---
   const [msg, setMsg] = useState({ show: false, type: '', text: '' });
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -179,7 +170,6 @@ export default function Sale() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
-  // --- Efeitos Colaterais (Side Effects) ---
   useEffect(() => {
     fetchProducts();
     fetchObras();
@@ -192,9 +182,7 @@ export default function Sale() {
     }
   }, [msg]);
 
-  // --- Funções Auxiliares e de Lógica ---
   const showMsg = (type, text) => setMsg({ show: true, type, text });
-
   const resetForm = () => {
     setInvoiceNumber('');
     setInvoiceDate('');
@@ -205,7 +193,6 @@ export default function Sale() {
 
   const calculateTotal = () => selectedItems.reduce((acc, item) => acc + item.totalValue, 0).toFixed(2);
 
-  // --- Funções de API ---
   async function fetchProducts() {
     try {
       const { data } = await api.get('/api/produto');
@@ -284,7 +271,6 @@ export default function Sale() {
     finally { setIsSavingInvoice(false); }
   }
 
-  // --- Manipuladores de Eventos (Event Handlers) ---
   const handleProductSelect = (option) => {
     if (option) {
       setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
@@ -310,8 +296,6 @@ export default function Sale() {
     }
   };
 
-  // --- Renderização do Componente ---
-  // O JSX agora é muito mais limpo, delegando a UI para os componentes filhos.
   return (
       <>
         <div className="sale-page-wrapper">

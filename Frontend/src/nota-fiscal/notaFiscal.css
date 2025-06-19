@@ -3,8 +3,9 @@
     --db-bg-main: #1C1D21;
     --db-bg-card: #2A2D35;
     --db-text-primary: #F0F2F5;
-    --db-text-secondary: #A9B1C2;
-    --db-text-label: #8A91A0;
+    /* FIX: Aumenta o brilho dos textos secundários e de labels para melhorar a legibilidade */
+    --db-text-secondary: #CED4DE;
+    --db-text-label: #A9B1C2;
     --db-accent-primary: #2DD4BF;
     --db-accent-danger: #F47174;
     --db-border-color: #3B3E47;

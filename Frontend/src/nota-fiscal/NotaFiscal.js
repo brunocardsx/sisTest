@@ -134,8 +134,30 @@ export default function NotaFiscal() {
         setNotaFiscalDetalhe(null);
         try {
             const { data } = await api.get(`/api/notas-fiscais/numero/${numeroNotaConsulta.trim()}`);
-            setNotaFiscalDetalhe(data.status ? { ...data.data, data_emissao_formatada: formatDate(data.data.data_emissao) } : null);
-            setMsgConsulta({ type: data.status ? '' : 'error', text: data.status ? '' : data.message });
+            if (data.status) {
+                const notaApi = data.data;
+
+                // FIX: Recalcula os totais da nota e dos itens, pois a API pode retornar valores incorretos.
+                let valorTotalNotaCalculado = 0;
+                const itensCalculados = notaApi.itens.map(item => {
+                    const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
+                    valorTotalNotaCalculado += valorTotalItem;
+                    return { ...item, valor_total_item: valorTotalItem };
+                });
+
+                const notaDetalhadaCorrigida = {
+                    ...notaApi,
+                    itens: itensCalculados,
+                    valor_total_nota: valorTotalNotaCalculado,
+                    data_emissao_formatada: formatDate(notaApi.data_emissao)
+                };
+
+                setNotaFiscalDetalhe(notaDetalhadaCorrigida);
+                setMsgConsulta({ type: '', text: '' }); // Limpa mensagens anteriores em caso de sucesso
+            } else {
+                setNotaFiscalDetalhe(null);
+                setMsgConsulta({ type: 'error', text: data.message });
+            }
         } catch (err) {
             setMsgConsulta({ type: 'error', text: err.response?.data?.message || "Erro ao buscar nota." });
         } finally {

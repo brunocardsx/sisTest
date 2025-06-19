@@ -1,7 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
 
-body {
+html, body, #root {
+    height: 100%;
     margin: 0;
+    padding: 0;
+}
+
+body {
     font-family: 'Poppins', sans-serif;
     background-color: #F3F4F6;
     -webkit-font-smoothing: antialiased;
@@ -13,21 +18,14 @@ body {
 }
 
 .app-layout {
-    display: flex;
+    display: grid;
     grid-template-columns: auto 1fr;
     min-height: 100vh;
-}
-
-.main-content-area {
-    flex-grow: 1;
-    background-color: #F3F4F6;
-}
-
+    height: 100%;
 
 @media (max-width: 768px) {
-    /* Altera o layout principal para uma única coluna */
     .app-layout {
-        /* O menu será escondido, então o conteúdo principal ocupará 100% da largura */
         grid-template-columns: 1fr;
+    }
     }
 }
