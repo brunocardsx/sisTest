@@ -2,7 +2,6 @@
 const { Sequelize } = require('sequelize');
 require('pg');
 
-// Só carregamos o dotenv se NÃO estivermos em produção.
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
@@ -10,11 +9,8 @@ if (process.env.NODE_ENV !== 'production') {
 let sequelize;
 
 if (process.env.NODE_ENV === 'production') {
-    // ==========================================================
-    // LÓGICA DE PRODUÇÃO (Vercel/Render) - SEM URL!
-    // ==========================================================
 
-    // Verificação de segurança para cada variável
+
     if (!process.env.PROD_DB_NAME || !process.env.PROD_DB_USER || !process.env.PROD_DB_PASSWORD || !process.env.PROD_DB_HOST) {
         throw new Error('Uma ou mais variáveis de ambiente do banco de dados de produção não foram definidas!');
     }
@@ -37,9 +33,7 @@ if (process.env.NODE_ENV === 'production') {
         }
     );
 } else {
-    // ==========================================================
-    // LÓGICA DE DESENVOLVIMENTO (Seu PC)
-    // ==========================================================
+
     console.log('[database.js] Configurando para desenvolvimento local...');
     sequelize = new Sequelize(
         process.env.DB_NAME,
