@@ -6,10 +6,8 @@ import './sale.css';
 
 // ===================================================================================
 //  1. CONSTANTES E COMPONENTES DE UI "BURROS" (PRESENTATIONAL COMPONENTS)
-//     Movidos para fora do componente principal para maior clareza e reutilização.
 // ===================================================================================
 
-// Estilos customizados para o react-select no tema dark
 const darkSelectStyles = {
   control: (p) => ({ ...p, backgroundColor: '#1C1D21', borderColor: '#3B3E47', minHeight: '48px', borderRadius: '8px', boxShadow: 'none', '&:hover': { borderColor: '#2DD4BF' } }),
   menu: (p) => ({ ...p, backgroundColor: '#2A2D35', border: '1px solid #3B3E47' }),
@@ -19,14 +17,15 @@ const darkSelectStyles = {
   placeholder: (p) => ({ ...p, color: '#8A91A0' }),
 };
 
-// --- Componente para o Formulário de Lançamento ---
 const SaleForm = ({
                     invoiceNumber, setInvoiceNumber, invoiceDate, setInvoiceDate,
-                    obraOptions, obraId, handleObraSelect,
+                    obraOptions, selectedObra, handleObraSelect,
                     productOptions, currentProduct, handleProductSelect, handleCreateProduct,
                     addProductToInvoice, handleOpenDeleteModal,
                     isSavingInvoice, saveInvoice, selectedItems, msg,
-                    quantityInputRef, setCurrentProduct, handleInputKeyDown
+                    setCurrentProduct, handleInputKeyDown,
+                    // Refs para controle de foco
+                    invoiceDateRef, obraSelectRef, productSelectRef, quantityInputRef, unitPriceInputRef
                   }) => (
     <div className="sale-card">
       <h2 className="sale-card-title">Lançamento de Nota Fiscal</h2>
@@ -37,15 +36,33 @@ const SaleForm = ({
       </div>
       <div className="form-group">
         <label>Selecione uma Obra</label>
-        <Select options={obraOptions} onChange={handleObraSelect} value={obraOptions.find(o => o.value === obraId)} placeholder="Selecione..." styles={darkSelectStyles} isClearable />
+        <Select
+            ref={obraSelectRef}
+            options={obraOptions}
+            onChange={handleObraSelect}
+            value={selectedObra}
+            placeholder="Selecione..."
+            styles={darkSelectStyles}
+            isClearable
+        />
       </div>
       <div className="form-group">
         <label>Data da Nota Fiscal</label>
-        <input type="date" className="form-input" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+        <input ref={invoiceDateRef} type="date" className="form-input" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
       </div>
       <div className="form-group">
         <label>Selecione ou Crie um Produto</label>
-        <CreatableSelect isClearable options={productOptions} onChange={handleProductSelect} onCreateOption={handleCreateProduct} value={currentProduct} placeholder="Pesquise ou digite para criar..." formatCreateLabel={(val) => `Criar produto: "${val}"`} styles={darkSelectStyles} />
+        <CreatableSelect
+            ref={productSelectRef}
+            isClearable
+            options={productOptions}
+            onChange={handleProductSelect}
+            onCreateOption={handleCreateProduct}
+            value={currentProduct}
+            placeholder="Pesquise ou digite para criar..."
+            formatCreateLabel={(val) => `Criar produto: "${val}"`}
+            styles={darkSelectStyles}
+        />
       </div>
 
       {currentProduct && (
@@ -60,7 +77,7 @@ const SaleForm = ({
               </div>
               <div className="form-group">
                 <label>Valor Unitário (R$)</label>
-                <input type="number" min="0" step="0.01" className="form-input" placeholder="0.00" onChange={(e) => setCurrentProduct({ ...currentProduct, unitPrice: e.target.value })} value={currentProduct.unitPrice || ''} onKeyDown={handleInputKeyDown} />
+                <input ref={unitPriceInputRef} type="number" min="0" step="0.01" className="form-input" placeholder="0.00" onChange={(e) => setCurrentProduct({ ...currentProduct, unitPrice: e.target.value })} value={currentProduct.unitPrice || ''} onKeyDown={handleInputKeyDown} />
               </div>
             </div>
             <button className="btn btn-primary btn-full-width" onClick={addProductToInvoice}>
@@ -79,7 +96,6 @@ const SaleForm = ({
     </div>
 );
 
-// --- Componente para a Tabela de Itens ---
 const InvoiceItems = ({ items, onRemoveItem, total }) => (
     <div className="sale-card items-list-card">
       <h3 className="sale-card-title">Itens da Nota</h3>
@@ -152,16 +168,20 @@ const DeleteProductModal = ({ isOpen, onClose, onConfirm, productName, isDeletin
   );
 };
 
+
 export default function Sale() {
+  // --- ESTADOS DO FORMULÁRIO ---
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState('');
-  const [obraId, setObraId] = useState(null);
+  const [selectedObra, setSelectedObra] = useState(null); // CORREÇÃO: Armazena o objeto da obra
   const [currentProduct, setCurrentProduct] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+
+  // --- DADOS E OPÇÕES ---
   const [obraOptions, setObraOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
-  const quantityInputRef = useRef(null);
 
+  // --- ESTADOS DE UI (MODAIS, MENSAGENS, ETC) ---
   const [msg, setMsg] = useState({ show: false, type: '', text: '' });
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -169,6 +189,14 @@ export default function Sale() {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
+  // --- REFS PARA CONTROLE DE FOCO (MELHORIA DE USABILIDADE) ---
+  const obraSelectRef = useRef(null);
+  const invoiceDateRef = useRef(null);
+  const productSelectRef = useRef(null);
+  const quantityInputRef = useRef(null);
+  const unitPriceInputRef = useRef(null);
+
 
   useEffect(() => {
     fetchProducts();
@@ -183,10 +211,11 @@ export default function Sale() {
   }, [msg]);
 
   const showMsg = (type, text) => setMsg({ show: true, type, text });
+
   const resetForm = () => {
     setInvoiceNumber('');
     setInvoiceDate('');
-    setObraId(null);
+    setSelectedObra(null); // CORREÇÃO: Limpa o objeto da obra
     setSelectedItems([]);
     setCurrentProduct(null);
   };
@@ -247,14 +276,15 @@ export default function Sale() {
   };
 
   async function saveInvoice() {
-    if (!invoiceNumber.trim() || !obraId || !invoiceDate || selectedItems.length === 0) {
+    // CORREÇÃO: Valida o objeto 'selectedObra'
+    if (!invoiceNumber.trim() || !selectedObra || !invoiceDate || selectedItems.length === 0) {
       return showMsg('error', 'Preencha todos os campos e adicione itens à nota.');
     }
     setIsSavingInvoice(true);
     const invoicePayload = {
       numero: invoiceNumber.trim(),
       data_emissao: invoiceDate,
-      obra_id: obraId,
+      obra_id: selectedObra.value, // CORREÇÃO: Pega o ID do objeto
       itens: selectedItems.map(item => ({
         produto_id: item.value,
         quantidade: item.quantity,
@@ -271,9 +301,20 @@ export default function Sale() {
     finally { setIsSavingInvoice(false); }
   }
 
+  // --- HANDLERS COM MELHORIAS DE USABILIDADE ---
+
+  const handleObraSelect = (option) => {
+    setSelectedObra(option);
+    if (option) {
+      // Move o foco para o campo de data para um fluxo mais rápido
+      invoiceDateRef.current?.focus();
+    }
+  };
+
   const handleProductSelect = (option) => {
     if (option) {
       setCurrentProduct({ ...option, quantity: '', unitPrice: '' });
+      // Foco no campo de quantidade após a seleção do produto
       setTimeout(() => quantityInputRef.current?.focus(), 100);
     } else {
       setCurrentProduct(null);
@@ -287,6 +328,8 @@ export default function Sale() {
     const totalValue = Number(currentProduct.quantity) * Number(currentProduct.unitPrice);
     setSelectedItems((prev) => [...prev, { ...currentProduct, quantity: Number(currentProduct.quantity), unitPrice: Number(currentProduct.unitPrice), totalValue }]);
     setCurrentProduct(null);
+    // Move o foco de volta para a seleção de produto para adicionar o próximo item
+    productSelectRef.current?.focus();
   };
 
   const handleInputKeyDown = (e) => {
@@ -302,13 +345,19 @@ export default function Sale() {
           <SaleForm
               invoiceNumber={invoiceNumber} setInvoiceNumber={setInvoiceNumber}
               invoiceDate={invoiceDate} setInvoiceDate={setInvoiceDate}
-              obraOptions={obraOptions} obraId={obraId} handleObraSelect={(opt) => setObraId(opt ? opt.value : null)}
+              obraOptions={obraOptions} selectedObra={selectedObra} handleObraSelect={handleObraSelect}
               productOptions={productOptions} currentProduct={currentProduct} setCurrentProduct={setCurrentProduct}
               handleProductSelect={handleProductSelect} handleCreateProduct={(val) => { setNewProductName(val); setIsCreateModalOpen(true); }}
               addProductToInvoice={addProductToInvoice} handleOpenDeleteModal={() => setIsDeleteModalOpen(true)}
               isSavingInvoice={isSavingInvoice} saveInvoice={saveInvoice}
               selectedItems={selectedItems} msg={msg}
-              quantityInputRef={quantityInputRef} handleInputKeyDown={handleInputKeyDown}
+              handleInputKeyDown={handleInputKeyDown}
+              // Passando os refs para o componente de formulário
+              obraSelectRef={obraSelectRef}
+              invoiceDateRef={invoiceDateRef}
+              productSelectRef={productSelectRef}
+              quantityInputRef={quantityInputRef}
+              unitPriceInputRef={unitPriceInputRef}
           />
           <InvoiceItems
               items={selectedItems}
