@@ -3,13 +3,14 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './menu.css';
 
+// ==============================================================================
+//             CORREÇÃO: ITENS DO MENU ATUALIZADOS AQUI
+// ==============================================================================
 const primaryMenuItems = [
     { path: '/dashboard', icon: 'fas fa-home', label: 'Início' },
-    { path: '/select-action', icon: 'fas fa-hand-holding-dollar', label: 'Receber / Vender' },
-    { path: '/cliente', icon: 'fas fa-users', label: 'Cliente' },
-    { path: '/produto', icon: 'fas fa-store', label: 'Produto' },
-    { path: '/estoque', icon: 'fas fa-boxes-stacked', label: 'Estoque' },
-    { path: '/contas', icon: 'fas fa-receipt', label: 'Contas' },
+    { path: '/notaFiscal', icon: 'fas fa-file-invoice-dollar', label: 'Cadastrar Nota' },
+    { path: '/notaFiscal', icon: 'fas fa-search', label: 'Consultar Nota' },
+    { path: '/obras', icon: 'fas fa-building-columns', label: 'Obras' },
 ];
 
 const secondaryMenuItems = [
@@ -22,6 +23,10 @@ export default function Menu({ isOpen, closeMenu }) {
     const location = useLocation();
 
     function isActive(path) {
+        // Uma pequena melhoria: destaca o link de nota fiscal se estiver na página
+        if (path === '/notaFiscal' && location.pathname.includes('/notaFiscal')) {
+            return 'active';
+        }
         return location.pathname === path ? 'active' : '';
     }
 
@@ -37,6 +42,7 @@ export default function Menu({ isOpen, closeMenu }) {
             <aside className={`menu-container ${isOpen ? 'open' : ''}`}>
                 <div className="logo-container">
                     <Link to="/dashboard" onClick={closeMenu}>
+                        {/* Recomendo usar o caminho da pasta public para a logo */}
                         <img src={require("../images/logo.png").default} alt="Logo do Sistema" />
                     </Link>
                 </div>

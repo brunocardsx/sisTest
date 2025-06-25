@@ -55,7 +55,6 @@ export default function Dashboard() {
     { to: "/select-action/venda", label: "Cadastrar Gasto", icon: <div className="icon-wrapper"><i className="fas fa-plus"></i></div> },
     { to: "/obras", label: "Obras", icon: <div className="icon-wrapper"><i className="fas fa-building-columns"></i></div> },
     { to: "/notaFiscal", label: "Nota Fiscal", icon: <div className="icon-wrapper"><i className="fas fa-file-invoice-dollar"></i></div> },
-    { to: "/estoque", label: "Estoque", icon: <div className="icon-wrapper"><i className="fas fa-boxes-stacked"></i></div> },
   ];
 
   return (
@@ -105,8 +104,7 @@ export default function Dashboard() {
           <div className="widget-card">
             <h3>Relatórios Rápidos</h3>
             <ul className="quick-reports-list">
-              <li><Link to="/relatorios/vendas"><i className="fas fa-chart-line"></i><span>Relatório de Vendas</span></Link></li>
-              <li><Link to="/relatorios/estoque"><i className="fas fa-box-open"></i><span>Posição do Estoque</span></Link></li>
+              <li><Link to="/relatorios/vendas"><i className="fas fa-chart-line"></i><span>Relatório de Compras</span></Link></li>
               <li><Link to="/relatorios/financeiro"><i className="fas fa-wallet"></i><span>Fluxo de Caixa</span></Link></li>
             </ul>
           </div>
