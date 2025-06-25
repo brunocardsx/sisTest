@@ -1,12 +1,5 @@
-// controllers/notaFiscalController.js
-
-// Importa os modelos a partir do index.js, que garante que as associações funcionem
 const { NotaFiscal, ItemNotaFiscal, Produto, Obra, sequelize } = require('../models');
 const { Op } = require('sequelize');
-
-// ==============================================================================
-// FUNÇÕES DE CRIAÇÃO E EXCLUSÃO
-// ==============================================================================
 
 const addInvoice = async (req, res) => {
     const { numero, obra_id, itens, data_emissao } = req.body;
@@ -58,10 +51,6 @@ const deleteInvoice = async (req, res) => {
         res.status(500).json({ status: false, message: "Erro interno ao excluir a nota fiscal." });
     }
 };
-
-// ==============================================================================
-// FUNÇÕES DE BUSCA E CONSULTA
-// ==============================================================================
 
 const formatarNotaParaResposta = (nota) => {
     if (!nota) return null;
@@ -126,11 +115,6 @@ const getInvoicesByDateRange = async (req, res) => {
     }
 };
 
-
-// ==============================================================================
-// FUNÇÃO CORRIGIDA PARA O DASHBOARD (COM A CORREÇÃO DO ERRO 500)
-// ==============================================================================
-// GET /api/notas-fiscais/mensal/:obraId
 const getMonthlyInvoices = async (req, res) => {
     const { obraId } = req.params;
     try {
@@ -142,14 +126,10 @@ const getMonthlyInvoices = async (req, res) => {
                 attributes: []
             },
             attributes: [
-                // Cria o alias 'mes_ano' a partir da função de data.
-                // NOTA: 'strftime' é para SQLite. Se usar PostgreSQL, troque por:
-                // sequelize.fn('to_char', sequelize.col('data_emissao'), 'YYYY-MM')
-                [sequelize.fn('strftime', '%Y-%m', sequelize.col('data_emissao')), 'mes_ano'],
+                [sequelize.fn('to_char', sequelize.col('data_emissao'), 'YYYY-MM'), 'mes_ano'],
+
                 [sequelize.fn('SUM', sequelize.col('itens.valor_total')), 'total_compras']
             ],
-            // CORREÇÃO DEFINITIVA: Agrupa pelo alias criado nos atributos.
-            // Esta é a forma mais limpa e geralmente funciona com o Sequelize moderno.
             group: ['mes_ano'],
             order: [['mes_ano', 'ASC']],
             raw: true
@@ -167,9 +147,6 @@ const getMonthlyInvoices = async (req, res) => {
     }
 };
 
-// ==========================================================
-// EXPORTAÇÃO DE TODAS AS FUNÇÕES
-// ==========================================================
 module.exports = {
     addInvoice,
     deleteInvoice,
