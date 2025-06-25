@@ -14,7 +14,6 @@ const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" view
 const formatDate = (dateString) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString));
 const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(value) || 0);
 
-// --- Componentes que estavam faltando ---
 const SearchByNumber = ({ onSubmit, isLoading, msg }) => (
     <>
         <h2 className="nf-card-title">Consultar por Número</h2>
@@ -44,7 +43,6 @@ const SearchByDate = ({ onSubmit, isLoading, msg }) => (
         </form>
     </>
 );
-// --- Fim dos componentes que estavam faltando ---
 
 const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
     <div className="results-container">
@@ -106,24 +104,21 @@ const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetail
     <div className="nf-list-container">
         {notas.map((nota) => (
             <div key={nota.id} className={`nf-list-item ${expandedNotaId === nota.id ? 'expanded' : ''}`}>
-                <div className="nf-item-header">
+                <div className="nf-item-header" onClick={() => onToggleDetails(nota.id)}>
                     <div className="nf-item-info">
                         <span className="nf-item-numero">Nota #{nota.numero}</span>
                         <span className="nf-item-data">{nota.data_emissao_formatada}</span>
-                        <span className="nf-item-valor">{formatCurrency(nota.valor_total_nota)}</span>
                     </div>
-                    <div className="nf-item-actions">
-                        <button className="btn btn-icon-only" onClick={() => onToggleDetails(nota.id)} title={expandedNotaId === nota.id ? "Ocultar Detalhes" : "Ver Detalhes"}>
-                            <EyeIcon />
-                        </button>
-                        <button className="btn btn-icon-only btn-danger-outline" onClick={() => onOpenDeleteModal(nota)} title="Excluir Nota">
-                            <TrashIcon />
-                        </button>
-                    </div>
+                    <span className="nf-item-valor">{formatCurrency(nota.valor_total_nota)}</span>
                 </div>
                 {expandedNotaId === nota.id && (
                     <div className="nf-item-details-wrapper">
                         <ExpandedInvoiceDetails notaId={nota.id} />
+                        <div className="nf-item-footer-actions">
+                            <button className="btn btn-danger-text" onClick={(e) => { e.stopPropagation(); onOpenDeleteModal(nota); }}>
+                                <TrashIcon /> Excluir esta Nota Fiscal
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -131,7 +126,6 @@ const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetail
     </div>
 );
 
-// CORREÇÃO: ADICIONANDO O COMPONENTE DE MODAL DE VOLTA
 const DeleteModal = ({ isOpen, onClose, onConfirm, nota, isDeleting }) => {
     if (!isOpen) return null;
     return (
