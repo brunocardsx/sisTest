@@ -6,8 +6,8 @@ import './menu.css';
 
 const primaryMenuItems = [
     { path: '/dashboard', icon: 'fas fa-home', label: 'Início' },
-    { path: '/notaFiscal', icon: 'fas fa-file-invoice-dollar', label: 'Cadastrar Nota' },
-    { path: '/select-action/venda', icon: 'fas fa-search', label: 'Consultar Nota' },
+    { path: '/select-action/venda', icon: 'fas fa-file-invoice-dollar', label: 'Cadastrar Nota' },
+    { path: '/notaFiscal', icon: 'fas fa-search', label: 'Consultar Nota' },
     { path: '/obras', icon: 'fas fa-building-columns', label: 'Obras' },
 ];
 
