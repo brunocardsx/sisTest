@@ -1,249 +1,304 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-import './notaFiscal.css';
+// controllers/notaFiscalController.js
+const { NotaFiscal, ItemNotaFiscal, Produto, Obra } = require('../models');
+const { Op } = require('sequelize');
 
-// ===================================================================
-// Ícones
-// ===================================================================
-const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="btn-icon"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="btn-icon"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.134H8.09a2.09 2.09 0 00-2.09 2.134v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>;
+async function addInvoice(req, res) {
+    const { numero, obra_id, itens, data_emissao } = req.body;
 
-// ===================================================================
-// 1. COMPONENTES DE UI (PRESENTATIONAL)
-// ===================================================================
-const formatDate = (dateString) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString));
-const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(value) || 0);
+    if (!numero || !obra_id || !itens || itens.length === 0 || !data_emissao) {
+        return res.status(400).json({ status: false, message: "Dados incompletos para salvar a nota fiscal." });
+    }
 
-// --- Componentes que estavam faltando ---
-const SearchByNumber = ({ onSubmit, isLoading, msg }) => (
-    <>
-        <h2 className="nf-card-title">Consultar por Número</h2>
-        <form onSubmit={onSubmit} className="form-wrapper">
-            <div className="form-group">
-                <label htmlFor="numeroNotaConsulta">Número da Nota Fiscal</label>
-                <input id="numeroNotaConsulta" name="numero" type="text" className="form-input" placeholder="Digite o número" disabled={isLoading} />
-            </div>
-            <button type="submit" className="btn btn-primary btn-full-width" disabled={isLoading}>
-                {isLoading ? "Buscando..." : "Buscar Nota"}
-            </button>
-            {msg.text && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
-        </form>
-    </>
-);
-
-const SearchByDate = ({ onSubmit, isLoading, msg }) => (
-    <>
-        <h2 className="nf-card-title">Listar por Período</h2>
-        <form onSubmit={onSubmit} className="form-wrapper">
-            <div className="date-form-grid">
-                <div className="form-group"><label htmlFor="dataInicio">Data de Início</label><input id="dataInicio" name="dataInicio" type="date" className="form-input" disabled={isLoading} /></div>
-                <div className="form-group"><label htmlFor="dataFim">Data de Fim</label><input id="dataFim" name="dataFim" type="date" className="form-input" disabled={isLoading} /></div>
-            </div>
-            <button type="submit" className="btn btn-primary btn-full-width" disabled={isLoading}>{isLoading ? "Buscando..." : "Listar Notas"}</button>
-            {msg.text && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}
-        </form>
-    </>
-);
-// --- Fim dos componentes que estavam faltando ---
-
-const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
-    <div className="results-container">
-        <div className="info-grid">
-            <p><strong>Emissão:</strong> <span>{nota.data_emissao_formatada}</span></p>
-            <p><strong>Obra:</strong> <span>{nota.obra_nome || 'N/A'}</span></p>
-            <p><strong>Valor Total:</strong> <span>{formatCurrency(nota.valor_total_nota)}</span></p>
-        </div>
-        <h3 className="items-table-title">Itens da Nota</h3>
-        <table className="items-table">
-            <thead><tr><th>Produto</th><th className="text-right">Qtd</th><th className="text-right">Vl. Unit.</th><th className="text-right">Total</th></tr></thead>
-            <tbody>
-            {nota.itens.map((item, i) => (
-                <tr key={i}>
-                    <td data-label="Produto">{item.produto_nome}</td>
-                    <td data-label="Qtd" className="text-right">{item.quantidade}</td>
-                    <td data-label="Vl. Unit." className="text-right">{formatCurrency(item.valor_unitario)}</td>
-                    <td data-label="Total" className="text-right">{formatCurrency(item.valor_total_item)}</td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
-        {onOpenDeleteModal && <button className="btn btn-danger" onClick={() => onOpenDeleteModal(nota)}>Excluir Nota Fiscal</button>}
-    </div>
-);
-
-const ExpandedInvoiceDetails = ({ notaId }) => {
-    const [details, setDetails] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchDetails = async () => {
-            setLoading(true);
-            try {
-                const { data } = await api.get(`/api/notas-fiscais/${notaId}`);
-                if (data.status) {
-                    const notaApi = data.data;
-                    let valorTotalNotaCalculado = 0;
-                    const itensCalculados = notaApi.itens.map(item => {
-                        const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
-                        valorTotalNotaCalculado += valorTotalItem;
-                        return { ...item, valor_total_item: valorTotalItem };
-                    });
-                    setDetails({ ...notaApi, itens: itensCalculados, valor_total_nota: valorTotalNotaCalculado, data_emissao_formatada: formatDate(notaApi.data_emissao) });
-                }
-            } catch (error) { console.error("Erro ao buscar detalhes da nota:", error);
-            } finally { setLoading(false); }
-        };
-        fetchDetails();
-    }, [notaId]);
-
-    if (loading) return <p className="details-feedback">Carregando detalhes...</p>;
-    if (!details) return <p className="details-feedback error">Não foi possível carregar os detalhes.</p>;
-
-    return <InvoiceDetails nota={details} />;
-};
-
-const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetails }) => (
-    <div className="nf-list-container">
-        {notas.map((nota) => (
-            <div key={nota.id} className={`nf-list-item ${expandedNotaId === nota.id ? 'expanded' : ''}`}>
-                <div className="nf-item-header">
-                    <div className="nf-item-info">
-                        <span className="nf-item-numero">Nota #{nota.numero}</span>
-                        <span className="nf-item-data">{nota.data_emissao_formatada}</span>
-                        <span className="nf-item-valor">{formatCurrency(nota.valor_total_nota)}</span>
-                    </div>
-                    <div className="nf-item-actions">
-                        <button className="btn btn-icon-only" onClick={() => onToggleDetails(nota.id)} title={expandedNotaId === nota.id ? "Ocultar Detalhes" : "Ver Detalhes"}>
-                            <EyeIcon />
-                        </button>
-                        <button className="btn btn-icon-only btn-danger-outline" onClick={() => onOpenDeleteModal(nota)} title="Excluir Nota">
-                            <TrashIcon />
-                        </button>
-                    </div>
-                </div>
-                {expandedNotaId === nota.id && (
-                    <div className="nf-item-details-wrapper">
-                        <ExpandedInvoiceDetails notaId={nota.id} />
-                    </div>
-                )}
-            </div>
-        ))}
-    </div>
-);
-
-// CORREÇÃO: ADICIONANDO O COMPONENTE DE MODAL DE VOLTA
-const DeleteModal = ({ isOpen, onClose, onConfirm, nota, isDeleting }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h2>Confirmar Exclusão</h2>
-                <p>Deseja excluir a nota fiscal nº <strong className="item-to-delete">{nota?.numero}</strong>?</p>
-                <p className="delete-warning">Esta ação não pode ser desfeita.</p>
-                <div className="modal-actions">
-                    <button className="btn-modal cancel" onClick={onClose} disabled={isDeleting}>Cancelar</button>
-                    <button className="btn-modal danger" onClick={onConfirm} disabled={isDeleting}>{isDeleting ? 'Excluindo...' : 'Sim, Excluir'}</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ===================================================================
-// 2. COMPONENTE PRINCIPAL (CONTAINER)
-// ===================================================================
-
-export default function NotaFiscal() {
-    const [notaFiscalDetalhe, setNotaFiscalDetalhe] = useState(null);
-    const [notasFiltradas, setNotasFiltradas] = useState([]);
-    const [msgConsulta, setMsgConsulta] = useState({ type: '', text: '' });
-    const [msgLista, setMsgLista] = useState({ type: '', text: '' });
-    const [loadingConsulta, setLoadingConsulta] = useState(false);
-    const [loadingLista, setLoadingLista] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [notaToDelete, setNotaToDelete] = useState(null);
-    const [expandedNotaId, setExpandedNotaId] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleToggleDetails = (notaId) => {
-        setExpandedNotaId(prevId => (prevId === notaId ? null : notaId));
-    };
-
-    const buscarNotaPorNumero = async (e) => {
-        e.preventDefault();
-        const numero = e.target.elements.numero.value;
-        if (!numero.trim()) return setMsgConsulta({ type: 'error', text: 'Digite o número da nota.' });
-        setLoadingConsulta(true); setNotaFiscalDetalhe(null);
-        try {
-            const { data } = await api.get(`/api/notas-fiscais/numero/${numero.trim()}`);
-            if (data.status) {
-                const notaApi = data.data;
-                let valorTotalNotaCalculado = 0;
-                const itensCalculados = notaApi.itens.map(item => {
-                    const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
-                    valorTotalNotaCalculado += valorTotalItem;
-                    return { ...item, valor_total_item: valorTotalItem };
-                });
-                setNotaFiscalDetalhe({ ...notaApi, itens: itensCalculados, valor_total_nota: valorTotalNotaCalculado, data_emissao_formatada: formatDate(notaApi.data_emissao) });
-                setMsgConsulta({ type: '', text: '' });
-            } else { setNotaFiscalDetalhe(null); setMsgConsulta({ type: 'error', text: data.message }); }
-        } catch (err) { setMsgConsulta({ type: 'error', text: err.response?.data?.message || "Erro ao buscar nota." });
-        } finally { setLoadingConsulta(false); }
-    };
-
-    const buscarNotasPorData = async (e) => {
-        e.preventDefault();
-        const dataInicio = e.target.elements.dataInicio.value;
-        const dataFim = e.target.elements.dataFim.value;
-        if (!dataInicio || !dataFim) return setMsgLista({ type: 'error', text: 'As datas são obrigatórias.' });
-        setLoadingLista(true); setNotasFiltradas([]); setExpandedNotaId(null);
-        try {
-            const { data } = await api.get(`/api/notas-fiscais/por-data?data_inicio=${dataInicio}&data_fim=${dataFim}`);
-            const notas = data.status ? data.data.map(nf => ({ ...nf, data_emissao_formatada: formatDate(nf.data_emissao) })) : [];
-            setNotasFiltradas(notas);
-            setMsgLista({ type: notas.length > 0 ? '' : 'info', text: notas.length > 0 ? '' : data.message });
-        } catch (err) { setMsgLista({ type: 'error', text: err.response?.data?.message || "Erro ao buscar notas." });
-        } finally { setLoadingLista(false); }
-    };
-
-    const handleDeleteNota = async () => {
-        if (!notaToDelete) return;
-        setIsDeleting(true);
-        try {
-            await api.delete(`/api/notas-fiscais/${notaToDelete.id}`);
-            setMsgLista({ type: 'success', text: 'Nota fiscal excluída com sucesso.' });
-            if (notaFiscalDetalhe?.id === notaToDelete.id) setNotaFiscalDetalhe(null);
-            setNotasFiltradas(prev => prev.filter(n => n.id !== notaToDelete.id));
-        } catch (err) { setMsgLista({ type: 'error', text: err.response?.data?.message || 'Erro ao excluir.' });
-        } finally {
-            setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-            setNotaToDelete(null);
+    try {
+        const notaFiscalExistente = await NotaFiscal.findOne({ where: { numero } });
+        if (notaFiscalExistente) {
+            return res.status(400).json({ status: false, message: "Número de nota fiscal já cadastrado." });
         }
-    };
 
-    const handleOpenDeleteModal = (nota) => { setNotaToDelete(nota); setIsDeleteModalOpen(true); };
+        const obra = await Obra.findByPk(obra_id);
+        if (!obra) {
+            return res.status(404).json({ status: false, message: "Obra não encontrada." });
+        }
 
-    return (
-        <>
-            <div className="nf-page-wrapper">
-                <div className="nf-card">
-                    <SearchByNumber onSubmit={buscarNotaPorNumero} isLoading={loadingConsulta} msg={msgConsulta} />
-                    {notaFiscalDetalhe && <InvoiceDetails nota={notaFiscalDetalhe} onOpenDeleteModal={handleOpenDeleteModal} />}
-                </div>
-                <div className="nf-card">
-                    <SearchByDate onSubmit={buscarNotasPorData} isLoading={loadingLista} msg={msgLista} />
-                    {notasFiltradas.length > 0 && (
-                        <InvoicesList
-                            notas={notasFiltradas}
-                            onOpenDeleteModal={handleOpenDeleteModal}
-                            expandedNotaId={expandedNotaId}
-                            onToggleDetails={handleToggleDetails}
-                        />
-                    )}
-                </div>
-            </div>
-            <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={handleDeleteNota} nota={notaToDelete} isDeleting={isDeleting} />
-        </>
-    );
+        const notaFiscal = await NotaFiscal.create({
+            numero,
+            obra_id,
+            data_emissao: new Date(data_emissao),
+        });
+
+        const itemPromises = itens.map(async (item) => {
+            if (!item.produto_id || item.quantidade <= 0 || item.valor_unitario < 0) {
+                throw new Error('Dados do item incompletos ou inválidos');
+            }
+
+            const produto = await Produto.findByPk(item.produto_id);
+            if (!produto) {
+                throw new Error(`Produto com ID ${item.produto_id} não encontrado.`);
+            }
+
+            return ItemNotaFiscal.create({
+                nota_fiscal_id: notaFiscal.id,
+                produto_id: item.produto_id,
+                quantidade: item.quantidade,
+                valor_unitario: item.valor_unitario,
+                valor_total: item.quantidade * item.valor_unitario,
+            });
+        });
+
+        await Promise.all(itemPromises);
+
+        return res.status(201).json({ status: true, message: "Nota fiscal e itens salvos com sucesso!", data: notaFiscal });
+    } catch (error) {
+        console.error("Erro ao salvar nota fiscal:", error);
+        return res.status(500).json({ status: false, message: error.message || "Erro ao salvar nota fiscal." });
+    }
 }
+
+async function getMonthlyInvoices(req, res) {
+    const { obraId } = req.params;
+    const { mes } = req.query;
+
+    try {
+        const where = {
+            obra_id: obraId
+        };
+
+        if (mes && mes !== 'todos') {
+            const [ano, mesNumero] = mes.split('-');
+            if (!ano || !mesNumero || isNaN(parseInt(ano)) || isNaN(parseInt(mesNumero))) {
+                return res.status(400).json({ status: false, message: "Formato de mês inválido. Use YYYY-MM." });
+            }
+            const inicioMes = new Date(Date.UTC(parseInt(ano), parseInt(mesNumero) - 1, 1));
+            const fimMes = new Date(Date.UTC(parseInt(ano), parseInt(mesNumero), 1));
+
+            where.data_emissao = { // <<< PONTO CRÍTICO PARA O ERRO ATUAL
+                [Op.gte]: inicioMes,
+                [Op.lt]: fimMes,
+            };
+        }
+
+        const notas = await NotaFiscal.findAll({
+            where,
+            include: {
+                model: ItemNotaFiscal,
+                as: 'itensDaNota',
+                attributes: ['valor_total']
+            },
+            order: [['data_emissao', 'ASC']] // <<< PONTO CRÍTICO PARA O ERRO ATUAL
+        });
+
+        const totaisPorMes = {};
+
+        for (const nota of notas) {
+            const data = new Date(nota.data_emissao);
+            const mesAno = data.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).replace('.', '');
+            const nomeMes = mesAno.charAt(0).toUpperCase() + mesAno.slice(1);
+
+            let totalNota = 0;
+            if (nota.itensDaNota && nota.itensDaNota.length > 0) {
+                totalNota = nota.itensDaNota.reduce((soma, item) => soma + parseFloat(item.valor_total || 0), 0);
+            }
+
+            if (!totaisPorMes[nomeMes]) {
+                totaisPorMes[nomeMes] = 0;
+            }
+            totaisPorMes[nomeMes] += totalNota;
+        }
+
+        const resultado = Object.entries(totaisPorMes).map(([mesFormatado, total]) => ({
+            mes: mesFormatado,
+            total_compras: total
+        }));
+
+        return res.json({ status: true, data: resultado });
+    } catch (error) {
+        console.error(`Erro ao buscar notas fiscais mensais para obra ${obraId}:`, error);
+        // Inclua o erro original na resposta para mais detalhes no frontend ou Postman
+        return res.status(500).json({ status: false, message: "Erro ao buscar notas fiscais mensais.", errorDetails: error.original?.sql || error.sql || error.message });
+    }
+}
+
+async function getInvoiceByNumber(req, res) {
+    const { numeroNota } = req.params;
+
+    if (!numeroNota) {
+        return res.status(400).json({ status: false, message: "Número da nota fiscal não fornecido." });
+    }
+
+    try {
+        const notaFiscal = await NotaFiscal.findOne({
+            where: { numero: numeroNota },
+            include: [
+                {
+                    model: ItemNotaFiscal,
+                    as: 'itensDaNota',
+                    include: {
+                        model: Produto,
+                        as: 'produto',
+                        attributes: ['nome']
+                    },
+                    attributes: ['quantidade', 'valor_unitario', 'valor_total', 'produto_id']
+                },
+                {
+                    model: Obra,
+                    as: 'obra',
+                    attributes: ['nome']
+                }
+            ]
+        });
+
+        if (!notaFiscal) {
+            return res.status(404).json({ status: false, message: "Nota fiscal não encontrada." });
+        }
+
+        const itensFormatados = notaFiscal.itensDaNota ? notaFiscal.itensDaNota.map(item => ({
+            produto_nome: item.produto ? item.produto.nome : 'Produto não encontrado',
+            produto_id: item.produto_id,
+            quantidade: item.quantidade,
+            valor_unitario: item.valor_unitario,
+            valor_total: item.valor_total
+        })) : [];
+
+        const resultado = {
+            id: notaFiscal.id,
+            numero: notaFiscal.numero,
+            data_emissao: notaFiscal.data_emissao, // <<< PONTO CRÍTICO PARA O ERRO ATUAL
+            obra_id: notaFiscal.obra_id,
+            obra_nome: notaFiscal.obra ? notaFiscal.obra.nome : 'Obra não encontrada',
+            itens: itensFormatados,
+        };
+
+        return res.json({ status: true, data: resultado });
+    } catch (error) {
+        console.error("Erro ao buscar nota fiscal por número:", error);
+        return res.status(500).json({ status: false, message: "Erro ao buscar nota fiscal.", errorDetails: error.original?.sql || error.sql || error.message });
+    }
+}
+
+
+// NOVA FUNÇÃO: Buscar notas fiscais por intervalo de datas
+async function getInvoicesByDateRange(req, res) {
+    const { data_inicio, data_fim } = req.query;
+
+    if (!data_inicio || !data_fim) {
+        return res.status(400).json({ status: false, message: "As datas de início e fim são obrigatórias." });
+    }
+
+    try {
+        const inicio = new Date(`${data_inicio}T00:00:00.000Z`);
+        const fim = new Date(`${data_fim}T23:59:59.999Z`);
+
+        if (isNaN(inicio.getTime()) || isNaN(fim.getTime())) {
+            return res.status(400).json({ status: false, message: "Formato de data inválido. Use YYYY-MM-DD." });
+        }
+        if (inicio > fim) {
+            return res.status(400).json({ status: false, message: "A data de início não pode ser posterior à data de fim." });
+        }
+
+        const notasFiscais = await NotaFiscal.findAll({
+            where: {
+                data_emissao: {
+                    [Op.between]: [inicio, fim]
+                }
+            },
+            include: [
+                {
+                    model: Obra,
+                    as: 'obra',
+                    attributes: ['nome']
+                },
+                { // INCLUIR ITENS E PRODUTOS ASSOCIADOS
+                    model: ItemNotaFiscal,
+                    as: 'itensDaNota', // Lembre-se de usar o alias correto
+                    attributes: ['quantidade', 'valor_unitario', 'valor_total'], // Campos que você quer dos itens
+                    include: {
+                        model: Produto,
+                        as: 'produto', // Lembre-se de usar o alias correto
+                        attributes: ['nome'] // Pegar o nome do produto
+                    }
+                }
+            ],
+            order: [['data_emissao', 'DESC'], ['numero', 'ASC']]
+        });
+
+        if (!notasFiscais || notasFiscais.length === 0) {
+            return res.status(404).json({ status: false, message: "Nenhuma nota fiscal encontrada para o período selecionado." });
+        }
+
+        // Mapear o resultado para incluir valor total da nota e formatar os itens
+        const resultado = notasFiscais.map(nf => {
+            let valorTotalDaNota = 0;
+            const itensFormatados = nf.itensDaNota ? nf.itensDaNota.map(item => {
+                valorTotalDaNota += parseFloat(item.valor_total || 0);
+                return {
+                    produto_nome: item.produto ? item.produto.nome : 'Produto Desconhecido',
+                    quantidade: item.quantidade,
+                    valor_unitario: parseFloat(item.valor_unitario || 0),
+                    valor_total_item: parseFloat(item.valor_total || 0)
+                };
+            }) : [];
+
+            return {
+                id: nf.id,
+                numero: nf.numero,
+                data_emissao: nf.data_emissao,
+                obra_nome: nf.obra ? nf.obra.nome : 'Obra não informada',
+                valor_total_nota: valorTotalDaNota, // Adicionando o valor total da nota
+                itens: itensFormatados // Adicionando os itens formatados
+            };
+        });
+
+        res.json({ status: true, data: resultado });
+
+    } catch (error) {
+        console.error("Erro ao buscar notas fiscais por data:", error);
+        res.status(500).json({ status: false, message: "Erro ao buscar notas fiscais por data." });
+    }
+}
+
+async function deleteInvoice(req, res) {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ status: false, message: "ID da nota fiscal não fornecido." });
+    }
+
+    try {
+        const notaFiscal = await NotaFiscal.findByPk(id);
+
+        if (!notaFiscal) {
+            return res.status(404).json({ status: false, message: "Nota fiscal não encontrada." });
+        }
+
+        // 1. Deleta os itens associados PRIMEIRO (Solução robusta)
+        await ItemNotaFiscal.destroy({
+            where: {
+                nota_fiscal_id: id
+            }
+        });
+
+        // 2. AGORA deleta a nota fiscal
+        await notaFiscal.destroy();
+
+        return res.status(200).json({
+            status: true,
+            message: `Nota fiscal nº ${notaFiscal.numero} foi excluída com sucesso.`
+        });
+
+    } catch (error) {
+        console.error("Erro ao excluir nota fiscal:", error);
+        return res.status(500).json({ status: false, message: "Erro interno ao excluir a nota fiscal." });
+    }
+}
+
+
+// ==========================================================
+// PONTO CRÍTICO: VERIFIQUE SEU MODULE.EXPORTS
+// ==========================================================
+module.exports = {
+    addInvoice,
+    getMonthlyInvoices,
+    getInvoiceByNumber,
+    getInvoicesByDateRange,
+    deleteInvoice // A função PRECISA estar aqui para ser exportada.
+};
