@@ -15,8 +15,6 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
     gap: 24px;
-    font-family: var(--db-font-main);
-    /* Removido o padding e background daqui para serem controlados pelo App.css */
     height: 100%;
 }
 
@@ -28,7 +26,6 @@
     flex-direction: column;
     gap: 20px;
 }
-
 .nf-card-title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -37,11 +34,7 @@
     padding-bottom: 16px;
     border-bottom: 1px solid var(--db-border-color);
 }
-
-.form-wrapper {
-    display: contents;
-}
-
+.form-wrapper { display: contents; }
 .form-group label {
     display: block;
     font-size: 0.875rem;
@@ -49,7 +42,6 @@
     color: var(--db-text-label);
     margin-bottom: 8px;
 }
-
 .form-input {
     width: 100%;
     padding: 12px 16px;
@@ -62,279 +54,145 @@
     transition: border-color 0.2s;
     box-sizing: border-box;
 }
-
-.form-input:focus {
-    border-color: var(--db-accent-primary);
-}
-
-.date-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
+.form-input:focus { border-color: var(--db-accent-primary); }
+.date-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 .btn {
-    padding: 12px 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    padding: 12px 20px; font-size: 0.95rem; font-weight: 600; border: none;
+    border-radius: 8px; cursor: pointer; transition: 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
 }
-
-.btn-primary {
-    background-color: var(--db-accent-primary);
-    color: #1C1D21;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background-color: #5EEAD4;
-}
-
-.btn-full-width {
-    width: 100%;
-}
-
-.btn-danger {
-    background-color: var(--db-accent-danger);
-    color: white;
-    margin-top: auto;
-}
-
+.btn-primary { background-color: var(--db-accent-primary); color: #1C1D21; }
+.btn-primary:hover:not(:disabled) { background-color: #5EEAD4; }
+.btn-full-width { width: 100%; }
+.btn-danger { background-color: var(--db-accent-danger); color: white; margin-top: auto; }
 .btn-danger-text {
-    background: none;
-    color: var(--db-accent-danger);
-    padding: 8px 12px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    gap: 8px;
+    background: none; color: var(--db-accent-danger); padding: 8px 12px;
+    font-weight: 500; font-size: 0.875rem; gap: 8px;
 }
-
-.btn-danger-text:hover {
-    background-color: rgba(244, 113, 116, 0.1);
-}
-
-.btn-icon {
-    width: 16px;
-    height: 16px;
-}
+.btn-danger-text:hover { background-color: rgba(244, 113, 116, 0.1); }
+.btn-icon { width: 16px; height: 16px; }
 
 .nf-list-container {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--db-border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-grow: 1;
+    margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--db-border-color);
+    display: flex; flex-direction: column; gap: 8px; flex-grow: 1;
 }
-
 .nf-list-item {
-    background-color: var(--db-bg-main);
-    border-radius: var(--db-border-radius);
-    border: 1px solid var(--db-bg-main);
-    transition: all 0.2s ease-in-out;
+    background-color: var(--db-bg-main); border-radius: var(--db-border-radius);
+    border: 1px solid var(--db-bg-main); transition: all 0.2s ease-in-out;
 }
-
 .nf-list-item.expanded {
-    border-color: var(--db-border-color);
-    background-color: var(--db-bg-card);
+    border-color: var(--db-border-color); background-color: var(--db-bg-card);
 }
-
 .nf-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 16px;
-    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; gap: 16px; cursor: pointer;
 }
-
-.nf-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.nf-item-numero {
-    font-weight: 600;
-    color: var(--db-text-primary);
-}
-
-.nf-item-data {
-    font-size: 0.8rem;
-    color: var(--db-text-label);
-}
-
-.nf-item-valor {
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--db-accent-primary);
-}
-
-.nf-item-details-wrapper {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out;
-}
-
-.nf-list-item.expanded .nf-item-details-wrapper {
-    max-height: 2000px;
-    transition: max-height 0.5s ease-in;
-}
-
-.nf-item-footer-actions {
-    padding: 8px 16px 16px;
-    text-align: right;
-}
-
-.details-feedback {
-    padding: 30px;
-    text-align: center;
-    color: var(--db-text-label);
-    font-style: italic;
-}
+.nf-item-info { display: flex; flex-direction: column; gap: 2px; }
+.nf-item-numero { font-weight: 600; color: var(--db-text-primary); }
+.nf-item-data { font-size: 0.8rem; color: var(--db-text-label); }
+.nf-item-valor { font-weight: 600; font-size: 1rem; color: var(--db-accent-primary); }
+.nf-item-details-wrapper { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+.nf-list-item.expanded .nf-item-details-wrapper { max-height: 2000px; transition: max-height 0.5s ease-in; }
+.nf-item-footer-actions { padding: 8px 16px 16px; text-align: right; }
+.details-feedback { padding: 30px; text-align: center; color: var(--db-text-label); font-style: italic; }
 
 .results-container {
-    padding-top: 0;
-    margin-top: 0;
-    border-top: 1px solid var(--db-border-color);
-    padding: 24px 8px 8px 8px;
+    padding-top: 0; margin-top: 0; border-top: 1px solid var(--db-border-color); padding: 24px 8px 8px 8px;
 }
-
 .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px 24px;
-    margin-bottom: 24px;
-    font-size: 0.9rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 24px; font-size: 0.9rem;
 }
-
-.info-grid p {
-    margin: 0;
-}
-
+.info-grid p { margin: 0; }
 .info-grid p strong {
-    display: block;
-    color: var(--db-text-label);
-    font-weight: 500;
-    font-size: 0.8rem;
-    margin-bottom: 4px;
+    display: block; color: var(--db-text-label); font-weight: 500; font-size: 0.8rem; margin-bottom: 4px;
 }
-
-.info-grid p span {
-    color: var(--db-text-primary);
-    font-weight: 500;
-}
-
+.info-grid p span { color: var(--db-text-primary); font-weight: 500; }
 .items-table-title {
-    font-size: 1.1rem;
-    color: var(--db-text-primary);
-    font-weight: 600;
-    margin: 0 0 12px 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--db-border-color);
+    font-size: 1.1rem; color: var(--db-text-primary); font-weight: 600; margin: 0 0 12px 0;
+    padding-bottom: 8px; border-bottom: 1px solid var(--db-border-color);
 }
-
 .items-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: var(--db-bg-main);
-    border-radius: 8px;
+    width: 100%; border-collapse: collapse; background-color: var(--db-bg-main); border-radius: 8px;
 }
-
-.items-table th,
-.items-table td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--db-bg-interactive);
+.items-table th, .items-table td {
+    padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--db-bg-interactive);
 }
-
 .items-table th {
-    font-size: 0.75rem;
-    color: var(--db-text-label);
-    text-transform: uppercase;
-    font-weight: 600;
+    font-size: 0.75rem; color: var(--db-text-label); text-transform: uppercase; font-weight: 600;
 }
-
-.items-table td {
-    font-size: 0.9rem;
-    color: var(--db-text-primary);
-}
-
-.items-table tr:last-child td {
-    border-bottom: none;
-}
-
-.items-table .text-right {
-    text-align: right;
-}
+.items-table td { font-size: 0.9rem; color: var(--db-text-primary); }
+.items-table tr:last-child td { border-bottom: none; }
+.items-table .text-right { text-align: right; }
 
 @media (max-width: 900px) {
-    .nf-page-wrapper {
-        grid-template-columns: 1fr;
-    }
+    .nf-page-wrapper { grid-template-columns: 1fr; }
 }
 
-/* ========================================================== */
-/*           CORREÇÃO DEFINITIVA PARA RESPONSIVIDADE          */
-/* ========================================================== */
 @media (max-width: 768px) {
     .nf-page-wrapper {
-        /* Remove o padding e o fundo próprios para herdar do layout principal */
         padding: 0;
         background-color: transparent;
-        /* Mantém o espaçamento entre os cards */
         gap: 16px;
     }
-
-    .nf-card {
-        padding: 16px;
-    }
-
-    .nf-card-title {
-        font-size: 1.25rem;
-    }
-
-    .date-form-grid,
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
+    .nf-card { padding: 16px; }
+    .nf-card-title { font-size: 1.25rem; }
+    .date-form-grid, .info-grid { grid-template-columns: 1fr; }
 
     .items-table thead {
         display: none;
     }
 
+    /* ========================================================== */
+    /*           CORREÇÃO DEFINITIVA PARA A TABELA MOBILE         */
+    /* ========================================================== */
+
     .items-table tr {
         display: block;
-        width: 100%;
         border-bottom: 1px solid var(--db-border-color);
-        padding: 12px 0;
-        margin-bottom: 12px;
+        padding: 16px 0;
+        margin-bottom: 16px;
     }
     .items-table tr:last-child {
         border-bottom: none;
         margin-bottom: 0;
+        padding-bottom: 0;
     }
 
     .items-table td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        text-align: right;
         padding: 8px 0;
         border-bottom: none;
+        font-size: 0.95rem; /* Aumenta um pouco a fonte para melhor legibilidade */
     }
 
+    /* Adiciona um pseudo-elemento para o rótulo */
     .items-table td::before {
         content: attr(data-label);
         font-weight: 500;
         color: var(--db-text-label);
         text-align: left;
         padding-right: 16px;
+    }
+
+    /* Estilo especial para a célula do nome do produto */
+    .items-table td[data-label="Produto"] {
+        flex-direction: column; /* Empilha o rótulo e o nome do produto */
+        align-items: flex-start; /* Alinha tudo à esquerda */
+        font-weight: 600;
+        color: var(--db-text-primary);
+        gap: 4px; /* Adiciona um pequeno espaço */
+        padding-bottom: 12px; /* Mais espaço abaixo do nome do produto */
+        margin-bottom: 8px;
+        border-bottom: 1px dashed var(--db-border-color); /* Linha divisória sutil */
+    }
+
+    /* Move o valor (nome do produto) para baixo do rótulo */
+    .items-table td[data-label="Produto"]::after {
+        content: normal; /* Remove a necessidade de texto duplicado no JS */
+        text-align: left;
+        width: 100%;
     }
 }
