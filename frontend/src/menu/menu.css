@@ -1,33 +1,61 @@
-/* --- Variáveis de Cor para a Sidebar --- */
+/* src/components/menu.css */
 :root {
-  --menu-bg: #1F2D2D;          /* Fundo principal da sidebar (verde-escuro) */
-  --menu-text: #A9B1C2;        /* Cor do texto dos itens inativos */
-  --menu-text-active: #FFFFFF;  /* Cor do texto do item ativo */
-  --menu-icon: #8A91A0;         /* Cor do ícone inativo */
-  --menu-icon-active: #2DD4BF;  /* Cor do ícone ativo (verde-azulado vibrante) */
-  --menu-hover-bg: #2A3B3B;     /* Fundo do item em hover */
-  --menu-active-bg: #2D4343;   /* Fundo do item ativo */
+  --menu-bg: #1F2D2D;
+  --menu-text: #A9B1C2;
+  --menu-text-active: #FFFFFF;
+  --menu-icon: #8A91A0;
+  --menu-icon-active: #2DD4BF;
+  --menu-hover-bg: #2A3B3B;
+  --menu-active-bg: #2D4343;
 }
 
-/* --- Container Principal do Menu --- */
-/* Esta classe vem do seu App.js, o menu agora é um item do grid. */
 .menu-container {
-  grid-column: 1 / 2; /* Garante que o menu ocupe a primeira coluna do .app-layout */
-  width: 260px; /* Largura padrão do menu */
+  grid-column: 1 / 2;
+  width: 260px;
   background-color: var(--menu-bg);
   padding: 24px;
   display: flex;
-  flex-direction: column; /* Organiza os itens verticalmente */
+  flex-direction: column;
   transition: width 0.3s ease-in-out;
   box-sizing: border-box;
+  z-index: 999;
+
+  /* ========================================================== */
+  /* CORREÇÃO 1: Adiciona scroll ao menu se ele for muito alto  */
+  /* ========================================================== */
+  overflow-y: auto;
 }
 
-.logo-container {
-  padding: 0 10px;
-  margin-bottom: 30px;
+/* --- Overlay para fechar menu no mobile --- */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
 }
+.menu-overlay.show {
+  display: block;
+}
+
+/* ========================================================== */
+/* CORREÇÃO 2: Garante que a logo fique maior e centralizada  */
+/* ========================================================== */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  margin-bottom: 30px;
+  /* Garante que o container da logo não encolha */
+  flex-shrink: 0;
+}
+
 .logo-container img {
-  max-width: 100%;
+  width: 250px; /* <<-- Ajuste este valor se quiser maior ou menor */
   height: auto;
 }
 
@@ -35,7 +63,7 @@
 .menu-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Espaçamento entre os itens do menu */
+  gap: 8px;
 }
 
 .menu-item-link {
@@ -62,15 +90,12 @@
 
 .menu-item i {
   font-size: 1.1rem;
-  width: 24px; /* Garante alinhamento consistente */
+  width: 24px;
   margin-right: 16px;
   color: var(--menu-icon);
   transition: color 0.2s ease;
 }
-.menu-item:hover i {
-  color: var(--menu-icon-active);
-}
-.menu-item.active i {
+.menu-item:hover i, .menu-item.active i {
   color: var(--menu-icon-active);
 }
 
@@ -80,29 +105,26 @@
 
 /* --- Separador e Seção Inferior --- */
 .menu-spacer {
-  flex-grow: 1; /* Este truque empurra a seção de baixo para o final */
+  flex-grow: 1;
 }
 
-/* --- Responsividade --- */
+/* --- RESPONSIVIDADE PARA O MENU HAMBURGER --- */
 @media (max-width: 768px) {
   .menu-container {
-    width: 80px; /* Menu se torna uma barra de ícones */
-    padding: 24px 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
   }
-  .logo-container {
-    display: none; /* Esconde o logo para economizar espaço */
+
+  .menu-container.open {
+    transform: translateX(0);
   }
-  .menu-item-text {
-    /* Esconde o texto, deixando só o ícone */
-    opacity: 0;
-    position: absolute;
-    pointer-events: none;
-  }
-  .menu-item {
-    justify-content: center; /* Centraliza o ícone */
-  }
-  .menu-item i {
-    margin-right: 0;
-    font-size: 1.4rem;
+
+  .menu-overlay.show {
+    display: block;
   }
 }

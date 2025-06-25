@@ -1,0 +1,40 @@
+/* src/components/header.css */
+.main-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    background-color: #1F2D2D; /* Cor de fundo consistente */
+    color: #FFFFFF;
+    position: sticky; /* Fixa o header no topo ao rolar a página */
+    top: 0;
+    z-index: 900; /* Garante que fique acima do conteúdo, mas abaixo do menu overlay */
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: none; /* Escondido por padrão no mobile, aparece no desktop */
+}
+
+.menu-toggle-btn {
+    display: none; /* Escondido por padrão */
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin-right: 16px;
+}
+
+/* --- Responsividade --- */
+@media (max-width: 768px) {
+    .menu-toggle-btn {
+        display: block; /* Mostra o botão hamburger apenas no mobile */
+    }
+
+    .header-title {
+        display: block; /* Mostra o título também no mobile */
+    }
+}
