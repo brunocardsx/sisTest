@@ -5,6 +5,11 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./models');
 
+// NOVO: Importe os novos arquivos
+const authRoutes = require('./routes/authRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
+
+// SUAS ROTAS EXISTENTES
 const obraRoutes = require('./routes/obraRoutes');
 const materialRoutes = require('./routes/materialRoutes');
 const notaFiscalRoutes = require('./routes/notaFiscalRoutes');
@@ -18,32 +23,40 @@ const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 app.use(cors({
     origin: frontendUrl,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // 'Authorization' já estava aqui, perfeito!
     credentials: true,
 }));
 
 app.use(express.json());
 
-app.use('/api/obras', obraRoutes);
-app.use('/api/materiais', materialRoutes);
-app.use('/api/notas-fiscais', notaFiscalRoutes);
-app.use('/api/produto', produtoRoutes);
-app.use('/api/sales', saleRoutes);
+// ==========================================================
+// ALTERADO: Estrutura de Rotas (Públicas vs. Protegidas)
+// ==========================================================
 
+// --- ROTAS PÚBLICAS ---
+// Estas rotas não precisam de token para serem acessadas.
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'UP' });
 });
+app.use('/api/auth', authRoutes); // A rota de login é pública
 
+// --- ROTAS PROTEGIDAS ---
+// Todas as rotas abaixo desta linha SÓ funcionarão se um token JWT válido for enviado.
+// O middleware `authMiddleware` será o segurança de todas elas.
+app.use('/api/obras', authMiddleware, obraRoutes);
+app.use('/api/materiais', authMiddleware, materialRoutes);
+app.use('/api/notas-fiscais', authMiddleware, notaFiscalRoutes);
+app.use('/api/produto', authMiddleware, produtoRoutes);
+app.use('/api/sales', authMiddleware, saleRoutes);
+
+
+// Middleware de tratamento de erros (mantido como estava)
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Algo deu errado no servidor!');
 });
 
-// ==========================================================
-// LÓGICA DE INICIALIZAÇÃO CORRIGIDA
-// ==========================================================
-// Este bloco SEMPRE roda quando o arquivo é executado diretamente (Render, Local)
-// E NUNCA roda quando é importado (Vercel)
+// Lógica de inicialização (mantida como estava)
 if (require.main === module) {
     const PORT = process.env.PORT || 8081;
 
@@ -51,7 +64,6 @@ if (require.main === module) {
         .then(() => {
             console.log('Banco de dados sincronizado com sucesso.');
             app.listen(PORT, () => {
-                // A Render espera que a porta 0.0.0.0 seja usada
                 console.log(`Servidor rodando na porta ${PORT}`);
             });
         })
@@ -61,5 +73,4 @@ if (require.main === module) {
         });
 }
 
-// A Vercel (e testes) só precisam do 'app' exportado.
 module.exports = app;
