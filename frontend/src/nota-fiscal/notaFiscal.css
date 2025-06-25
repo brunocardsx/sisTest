@@ -143,15 +143,11 @@
         display: none;
     }
 
-    /* ========================================================== */
-    /*           CORREÇÃO DEFINITIVA PARA A TABELA MOBILE         */
-    /* ========================================================== */
-
     .items-table tr {
         display: block;
         border-bottom: 1px solid var(--db-border-color);
-        padding: 16px 0;
-        margin-bottom: 16px;
+        padding: 12px 0;
+        margin-bottom: 12px;
     }
     .items-table tr:last-child {
         border-bottom: none;
@@ -165,34 +161,21 @@
         align-items: center;
         padding: 8px 0;
         border-bottom: none;
-        font-size: 0.95rem; /* Aumenta um pouco a fonte para melhor legibilidade */
+        font-size: 0.95rem;
     }
 
-    /* Adiciona um pseudo-elemento para o rótulo */
     .items-table td::before {
         content: attr(data-label);
         font-weight: 500;
         color: var(--db-text-label);
-        text-align: left;
         padding-right: 16px;
+        flex-shrink: 0; /* Impede que o rótulo encolha */
     }
 
-    /* Estilo especial para a célula do nome do produto */
+    /* CORREÇÃO APLICADA AQUI */
     .items-table td[data-label="Produto"] {
-        flex-direction: column; /* Empilha o rótulo e o nome do produto */
-        align-items: flex-start; /* Alinha tudo à esquerda */
-        font-weight: 600;
-        color: var(--db-text-primary);
-        gap: 4px; /* Adiciona um pequeno espaço */
-        padding-bottom: 12px; /* Mais espaço abaixo do nome do produto */
-        margin-bottom: 8px;
-        border-bottom: 1px dashed var(--db-border-color); /* Linha divisória sutil */
-    }
-
-    /* Move o valor (nome do produto) para baixo do rótulo */
-    .items-table td[data-label="Produto"]::after {
-        content: normal; /* Remove a necessidade de texto duplicado no JS */
-        text-align: left;
-        width: 100%;
+        /* O valor (nome do produto) pode precisar de mais espaço */
+        text-align: right;
+        word-break: break-word; /* Permite quebrar a linha se o nome for muito longo */
     }
 }

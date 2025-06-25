@@ -19,6 +19,7 @@ const SearchByDate = ({ onSubmit, isLoading, msg }) => (
     <><h2 className="nf-card-title">Listar por Período</h2><form onSubmit={onSubmit} className="form-wrapper"><div className="date-form-grid"><div className="form-group"><label htmlFor="dataInicio">Data de Início</label><input id="dataInicio" name="dataInicio" type="date" className="form-input" disabled={isLoading} /></div><div className="form-group"><label htmlFor="dataFim">Data de Fim</label><input id="dataFim" name="dataFim" type="date" className="form-input" disabled={isLoading} /></div></div><button type="submit" className="btn btn-primary btn-full-width" disabled={isLoading}>{isLoading ? "Buscando..." : "Listar Notas"}</button>{msg.text && <div className={`feedback-message ${msg.type}`}>{msg.text}</div>}</form></>
 );
 
+
 const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
     <div className="results-container">
         <div className="info-grid">
@@ -32,7 +33,11 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
             <tbody>
             {nota.itens && nota.itens.map((item) => (
                 <tr key={item.id}>
-                    <td data-label="Produto">{item.produto_nome || 'Produto não identificado'}</td>
+
+                    <td data-label="Produto">
+                        {}
+                        <span>{item.produto_nome || 'Produto não identificado'}</span>
+                    </td>
                     <td data-label="Qtd" className="text-right">{item.quantidade}</td>
                     <td data-label="Vl. Unit." className="text-right">{formatCurrency(item.valor_unitario)}</td>
                     <td data-label="Total" className="text-right">{formatCurrency(item.valor_total)}</td>
@@ -43,6 +48,7 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
         {onOpenDeleteModal && (<button className="btn btn-danger" onClick={() => onOpenDeleteModal(nota)}>Excluir Nota Fiscal</button>)}
     </div>
 );
+
 
 const ExpandedInvoiceDetails = ({ notaId }) => {
     const [details, setDetails] = useState(null);
