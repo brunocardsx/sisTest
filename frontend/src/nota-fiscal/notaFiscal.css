@@ -22,8 +22,7 @@
 
 /* --- Card Principal e Formulários --- */
 .nf-card {
-    background-color: var(--db-bg-card);
-    border-radius: var(--db-border-radius);
+    background-color: var(--db-bg-card); border-radius: var(--db-border-radius);
     padding: 24px; display: flex; flex-direction: column; gap: 20px;
 }
 .nf-card-title {
@@ -49,12 +48,10 @@
     border-radius: 8px; cursor: pointer; transition: 0.2s;
     display: inline-flex; align-items: center; justify-content: center;
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background-color: var(--db-accent-primary); color: #1C1D21; }
 .btn-primary:hover:not(:disabled) { background-color: #5EEAD4; }
 .btn-full-width { width: 100%; }
 .btn-danger { background-color: var(--db-accent-danger); color: white; margin-top: auto; }
-.btn-danger:hover:not(:disabled) { background-color: #FB7185; }
 .btn-danger-text {
     background: none; color: var(--db-accent-danger); padding: 8px 12px;
     font-weight: 500; font-size: 0.875rem; gap: 8px;
@@ -62,17 +59,14 @@
 .btn-danger-text:hover { background-color: rgba(244, 113, 116, 0.1); }
 .btn-icon { width: 16px; height: 16px; }
 
-/* --- NOVA LISTA DE NOTAS --- */
+/* --- Lista de Notas (Acordeão) --- */
 .nf-list-container {
     margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--db-border-color);
-    display: flex; flex-direction: column; gap: 8px;
-    flex-grow: 1; /* Faz a lista preencher o espaço */
+    display: flex; flex-direction: column; gap: 8px; flex-grow: 1;
 }
 .nf-list-item {
-    background-color: var(--db-bg-main);
-    border-radius: var(--db-border-radius);
-    border: 1px solid var(--db-bg-main); /* Borda da mesma cor para transição */
-    transition: all 0.2s ease-in-out;
+    background-color: var(--db-bg-main); border-radius: var(--db-border-radius);
+    border: 1px solid var(--db-bg-main); transition: all 0.2s ease-in-out;
 }
 .nf-list-item.expanded {
     border-color: var(--db-border-color);
@@ -91,33 +85,68 @@
     transition: max-height 0.4s ease-out;
 }
 .nf-list-item.expanded .nf-item-details-wrapper {
-    max-height: 2000px;
-    transition: max-height 0.5s ease-in;
+    max-height: 2000px; transition: max-height 0.5s ease-in;
 }
-.nf-item-footer-actions { padding: 8px 16px 16px; }
-.results-container { padding-top: 16px; margin-top: 0; }
+.nf-item-footer-actions { padding: 8px 16px 16px; text-align: right; }
 .details-feedback { padding: 30px; text-align: center; color: var(--db-text-label); font-style: italic; }
 
-/* --- Tabela de Itens (dentro dos detalhes) --- */
-.items-table { width: 100%; border-collapse: collapse; background-color: var(--db-bg-main); border-radius: 8px; }
-.items-table th, .items-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--db-border-color); }
-.items-table th { font-size: 0.75rem; color: var(--db-text-label); text-transform: uppercase; }
-.items-table td { font-size: 0.9rem; }
+/* --- REFINO VISUAL DOS DETALHES --- */
+.results-container {
+    padding-top: 0; margin-top: 0;
+    border-top: 1px solid var(--db-border-color); /* Adiciona uma linha divisória */
+    padding: 24px 8px 8px 8px; /* Adiciona espaçamento interno */
+}
+.info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px 24px; margin-bottom: 24px;
+    font-size: 0.9rem;
+}
+.info-grid p { margin: 0; }
+.info-grid p strong {
+    display: block; /* O rótulo fica em uma linha */
+    color: var(--db-text-label);
+    font-weight: 500;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+.info-grid p span { color: var(--db-text-primary); font-weight: 500; }
+
+.items-table-title {
+    font-size: 1.1rem; color: var(--db-text-primary); font-weight: 600;
+    margin: 0 0 12px 0; padding-bottom: 8px;
+    border-bottom: 1px solid var(--db-border-color);
+}
+
+/* --- Tabela de Itens REFINADA --- */
+.items-table {
+    width: 100%; border-collapse: collapse;
+    background-color: var(--db-bg-main); border-radius: 8px;
+}
+.items-table th, .items-table td {
+    padding: 12px 16px; text-align: left;
+    border-bottom: 1px solid var(--db-bg-interactive);
+}
+.items-table th {
+    font-size: 0.75rem; color: var(--db-text-label);
+    text-transform: uppercase; font-weight: 600;
+}
+.items-table td { font-size: 0.9rem; color: var(--db-text-primary); }
 .items-table tr:last-child td { border-bottom: none; }
 .items-table .text-right { text-align: right; }
 
 /* --- Modais (sem alterações) --- */
-/* ... Seus estilos de modal aqui ... */
+/* Seus estilos de modal aqui */
 
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 900px) {
     .nf-page-wrapper { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-    .date-form-grid { grid-template-columns: 1fr; }
+    .date-form-grid, .info-grid { grid-template-columns: 1fr; }
     .items-table thead { display: none; }
-    .items-table tr, .items-table td { display: block; width: 100%; }
-    .items-table tr { padding: 8px 0; }
-    .items-table td { display: flex; justify-content: space-between; padding: 10px 0; }
+    .items-table tr, .items-table td { display: block; width: 100%; text-align: right; }
+    .items-table tr { border-bottom: 1px solid var(--db-border-color); padding: 8px 0; }
+    .items-table tr:last-child { border-bottom: none; }
+    .items-table td { display: flex; justify-content: space-between; padding: 10px 0; border: none; }
     .items-table td::before { content: attr(data-label); font-weight: 500; color: var(--db-text-label); }
 }

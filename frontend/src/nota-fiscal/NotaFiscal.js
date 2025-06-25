@@ -46,6 +46,7 @@ const SearchByDate = ({ onSubmit, isLoading, msg }) => (
     </>
 );
 
+// Componente de detalhes da nota, agora usado tanto na busca quanto na expansão
 const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
     <div className="results-container">
         <div className="info-grid">
@@ -55,11 +56,19 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
         </div>
         <h3 className="items-table-title">Itens da Nota</h3>
         <table className="items-table">
-            <thead><tr><th>Produto</th><th className="text-right">Qtd</th><th className="text-right">Vl. Unit.</th><th className="text-right">Total</th></tr></thead>
+            <thead>
+            <tr>
+                <th>Produto</th>
+                <th className="text-right">Qtd</th>
+                <th className="text-right">Vl. Unit.</th>
+                <th className="text-right">Total</th>
+            </tr>
+            </thead>
             <tbody>
-            {nota.itens.map((item, i) => (
-                <tr key={i}>
-                    <td data-label="Produto">{item.produto_nome}</td>
+            {nota.itens && nota.itens.map((item, i) => (
+                <tr key={item.id || i}>
+                    {/* AQUI ESTÁ A RENDERIZAÇÃO DO NOME DO PRODUTO */}
+                    <td data-label="Produto">{item.produto_nome || 'Produto não identificado'}</td>
                     <td data-label="Qtd" className="text-right">{item.quantidade}</td>
                     <td data-label="Vl. Unit." className="text-right">{formatCurrency(item.valor_unitario)}</td>
                     <td data-label="Total" className="text-right">{formatCurrency((item.quantidade || 0) * (item.valor_unitario || 0))}</td>
@@ -67,10 +76,16 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
             ))}
             </tbody>
         </table>
-        {onOpenDeleteModal && <button className="btn btn-danger" onClick={() => onOpenDeleteModal(nota)}>Excluir Nota Fiscal</button>}
+        {/* Renderiza o botão de excluir apenas se a função for passada (no caso da busca por número) */}
+        {onOpenDeleteModal && (
+            <button className="btn btn-danger" onClick={() => onOpenDeleteModal(nota)}>
+                Excluir Nota Fiscal
+            </button>
+        )}
     </div>
 );
 
+// Componente que busca os detalhes e os passa para InvoiceDetails
 const ExpandedInvoiceDetails = ({ notaId }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -84,7 +99,6 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
                 const { data } = await api.get(`/api/notas-fiscais/${notaId}`);
                 if (data.status) {
                     const notaApi = data.data;
-                    // Recalcula os totais aqui, pois a lista principal foi otimizada
                     const itensCalculados = notaApi.itens.map(item => ({
                         ...item,
                         valor_total_item: (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0)
@@ -113,9 +127,11 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
     if (error) return <p className="details-feedback error">{error}</p>;
     if (!details) return null;
 
+    // A MÁGICA: Renderiza o componente InvoiceDetails com os dados buscados
     return <InvoiceDetails nota={details} />;
 };
 
+// Componente da lista de notas com o acordeão
 const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetails }) => (
     <div className="nf-list-container">
         {notas.map((nota) => (
@@ -142,6 +158,7 @@ const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetail
     </div>
 );
 
+// Componente do modal de exclusão
 const DeleteModal = ({ isOpen, onClose, onConfirm, nota, isDeleting }) => {
     if (!isOpen) return null;
     return (
