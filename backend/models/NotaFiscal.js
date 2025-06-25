@@ -34,11 +34,6 @@ NotaFiscal.associate = (models) => {
         as: 'obra'
     });
 
-    // CORREÇÃO PRINCIPAL: Padronize o alias para 'itens'
-    NotaFiscal.hasMany(models.ItemNotaFiscal, {
-        foreignKey: 'nota_fiscal_id',
-        as: 'itens' // <--- Este é o alias correto e padronizado
-    });
 
 };
 
