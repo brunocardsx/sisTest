@@ -1,4 +1,8 @@
 // controllers/notaFiscalController.js
+
+// =================================================================================
+// CORREÇÃO CRÍTICA: Importe os modelos a partir do 'index.js' para obter as associações.
+// =================================================================================
 const { NotaFiscal, ItemNotaFiscal, Produto, Obra, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
@@ -20,7 +24,7 @@ const formatarNotaParaResposta = (nota) => {
     };
 };
 
-// GET /api/notas-fiscais/:id ou /api/notas-fiscais/numero/:numero
+// Uma única função para buscar detalhes por ID ou Número
 exports.getNotaDetalhada = async (req, res) => {
     try {
         const { id, numero } = req.params;
@@ -28,7 +32,7 @@ exports.getNotaDetalhada = async (req, res) => {
 
         const nota = await NotaFiscal.findOne({
             where: whereClause,
-            include: [
+            include: [ // Este include AGORA VAI FUNCIONAR porque os modelos estão associados.
                 { model: Obra, as: 'obra', attributes: ['nome'] },
                 {
                     model: ItemNotaFiscal,
@@ -48,40 +52,38 @@ exports.getNotaDetalhada = async (req, res) => {
     }
 };
 
-// GET /api/notas-fiscais/por-data
+// Função para buscar a lista de notas por data
 exports.getInvoicesByDateRange = async (req, res) => {
     const { data_inicio, data_fim } = req.query;
     if (!data_inicio || !data_fim) {
-        return res.status(400).json({ status: false, message: "As datas são obrigatórias." });
+        return res.status(400).json({ status: false, message: "Datas são obrigatórias." });
     }
     try {
         const notasFiscais = await NotaFiscal.findAll({
             where: { data_emissao: { [Op.between]: [`${data_inicio}T00:00:00Z`, `${data_fim}T23:59:59Z`] } },
-            include: [{ model: Obra, as: 'obra', attributes: ['nome'] }],
             attributes: [
                 'id', 'numero', 'data_emissao',
                 [sequelize.literal('(SELECT SUM(valor_total) FROM itens_nota_fiscal WHERE nota_fiscal_id = "NotaFiscal"."id")'), 'valor_total_nota']
             ],
             order: [['data_emissao', 'DESC']]
         });
-        const resultado = notasFiscais.map(nf => ({ ...nf.toJSON(), obra_nome: nf.obra ? nf.obra.nome : 'N/A' }));
-        res.json({ status: true, data: resultado, message: notasFiscais.length === 0 ? "Nenhuma nota fiscal encontrada para o período." : "" });
+        res.json({ status: true, data: notasFiscais, message: notasFiscais.length === 0 ? "Nenhuma nota fiscal encontrada." : "" });
     } catch (error) {
         console.error("Erro ao buscar notas fiscais por data:", error);
         res.status(500).json({ status: false, message: "Erro ao buscar notas fiscais por data." });
     }
 };
 
-// DELETE /api/notas-fiscais/:id
+// Função para deletar uma nota
 exports.deleteNota = async (req, res) => {
     try {
         const deletedCount = await NotaFiscal.destroy({ where: { id: req.params.id } });
         if (deletedCount === 0) {
             return res.status(404).json({ status: false, message: "Nota fiscal não encontrada." });
         }
-        res.status(200).json({ status: true, message: `Nota fiscal excluída com sucesso.` });
+        res.status(200).json({ status: true, message: "Nota fiscal excluída com sucesso." });
     } catch (error) {
         console.error("Erro ao excluir nota fiscal:", error);
-        res.status(500).json({ status: false, message: "Erro interno ao excluir a nota fiscal." });
+        res.status(500).json({ status: false, message: "Erro ao excluir a nota fiscal." });
     }
 };

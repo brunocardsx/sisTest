@@ -1,4 +1,3 @@
-// src/nota-fiscal/NotaFiscal.js
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import './notaFiscal.css';
@@ -45,7 +44,7 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
     </div>
 );
 
-const ExpandedInvoiceDetails = ({ notaId, onOpenDeleteModal }) => {
+const ExpandedInvoiceDetails = ({ notaId }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -70,7 +69,7 @@ const ExpandedInvoiceDetails = ({ notaId, onOpenDeleteModal }) => {
     if (error) return <p className="details-feedback error">{error}</p>;
     if (!details) return null;
 
-    return <InvoiceDetails nota={details} onOpenDeleteModal={onOpenDeleteModal} />;
+    return <InvoiceDetails nota={details} />;
 };
 
 const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetails }) => (
@@ -83,7 +82,12 @@ const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetail
                 </div>
                 {expandedNotaId === nota.id && (
                     <div className="nf-item-details-wrapper">
-                        <ExpandedInvoiceDetails notaId={nota.id} onOpenDeleteModal={onOpenDeleteModal} />
+                        <ExpandedInvoiceDetails notaId={nota.id} />
+                        <div className="nf-item-footer-actions">
+                            <button className="btn btn-danger-text" onClick={(e) => { e.stopPropagation(); onOpenDeleteModal(nota); }}>
+                                <TrashIcon /> Excluir esta Nota Fiscal
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -146,7 +150,7 @@ export default function NotaFiscal() {
             const { data } = await api.get(`/api/notas-fiscais/por-data?data_inicio=${dataInicio.value}&data_fim=${dataFim.value}`);
             if (data.status) {
                 setNotasFiltradas(data.data);
-                setMsgLista({ type: data.data.length > 0 ? '' : 'info', text: data.message || '' });
+                setMsgLista({ type: data.message ? 'info' : '', text: data.message || '' });
             } else {
                 setMsgLista({ type: 'error', text: data.message });
             }
