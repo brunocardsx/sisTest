@@ -69,7 +69,6 @@ const SearchByDate = ({ onSubmit, isLoading, msg }) => (
     </>
 );
 
-// NOVO: Componente para exibir os detalhes da nota quando expandido
 const ExpandedInvoiceDetails = ({ notaId }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -78,7 +77,6 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
         const fetchDetails = async () => {
             setLoading(true);
             try {
-                // Busca os detalhes completos da nota pelo ID
                 const { data } = await api.get(`/api/notas-fiscais/${notaId}`);
                 if (data.status) {
                     const notaApi = data.data;
@@ -88,18 +86,10 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
                         valorTotalNotaCalculado += valorTotalItem;
                         return { ...item, valor_total_item: valorTotalItem };
                     });
-                    setDetails({
-                        ...notaApi,
-                        itens: itensCalculados,
-                        valor_total_nota: valorTotalNotaCalculado,
-                        data_emissao_formatada: formatDate(notaApi.data_emissao)
-                    });
+                    setDetails({ ...notaApi, itens: itensCalculados, valor_total_nota: valorTotalNotaCalculado, data_emissao_formatada: formatDate(notaApi.data_emissao) });
                 }
-            } catch (error) {
-                console.error("Erro ao buscar detalhes da nota:", error);
-            } finally {
-                setLoading(false);
-            }
+            } catch (error) { console.error("Erro ao buscar detalhes da nota:", error);
+            } finally { setLoading(false); }
         };
         fetchDetails();
     }, [notaId]);
@@ -110,7 +100,6 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
     return <InvoiceDetails nota={details} />;
 };
 
-// ATUALIZADO: A lista agora é um acordeão de cards
 const InvoicesList = ({ notas, onOpenDeleteModal, expandedNotaId, onToggleDetails }) => (
     <div className="nf-list-container">
         {notas.map((nota) => (
@@ -170,7 +159,8 @@ export default function NotaFiscal() {
     const [loadingLista, setLoadingLista] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [notaToDelete, setNotaToDelete] = useState(null);
-    const [expandedNotaId, setExpandedNotaId] = useState(null); // NOVO ESTADO
+    const [expandedNotaId, setExpandedNotaId] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false); // <-- A LINHA QUE ESTAVA FALTANDO
 
     const handleToggleDetails = (notaId) => {
         setExpandedNotaId(prevId => (prevId === notaId ? null : notaId));
@@ -222,7 +212,11 @@ export default function NotaFiscal() {
             if (notaFiscalDetalhe?.id === notaToDelete.id) setNotaFiscalDetalhe(null);
             setNotasFiltradas(prev => prev.filter(n => n.id !== notaToDelete.id));
         } catch (err) { setMsgLista({ type: 'error', text: err.response?.data?.message || 'Erro ao excluir.' });
-        } finally { setIsDeleting(false); setIsDeleteModalOpen(false); setNotaToDelete(null); }
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+            setNotaToDelete(null);
+        }
     };
 
     const handleOpenDeleteModal = (nota) => { setNotaToDelete(nota); setIsDeleteModalOpen(true); };
