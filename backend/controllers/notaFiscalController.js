@@ -1,20 +1,11 @@
 // controllers/notaFiscalController.js
-const { NotaFiscal, ItemNotaFiscal, Produto, Obra, sequelize } = require('../models'); // Importar sequelize para literais
+const { NotaFiscal, ItemNotaFiscal, Produto, Obra, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
-exports.addInvoice = async (req, res) => {
-    const { numero, obra_id, itens, data_emissao } = req.body;
-    if (!numero || !obra_id || !itens || itens.length === 0 || !data_emissao) {
-        return res.status(400).json({ status: false, message: "Dados incompletos para salvar a nota fiscal." });
-    }
-    try {
-        // ... (seu código de addInvoice pode permanecer o mesmo)
-    } catch (error) {
-        // ... (seu tratamento de erro)
-    }
-};
-
-
+/**
+ * 1. BUSCA NOTAS POR PERÍODO (OTIMIZADO)
+ * Traz a lista de notas rapidamente, calculando o total no banco de dados.
+ */
 exports.getInvoicesByDateRange = async (req, res) => {
     const { data_inicio, data_fim } = req.query;
     if (!data_inicio || !data_fim) {
@@ -28,21 +19,20 @@ exports.getInvoicesByDateRange = async (req, res) => {
             },
             include: [{
                 model: Obra,
-                as: 'obra', // Verifique se 'obra' é o alias correto no seu model NotaFiscal
+                as: 'obra', // CONFIRME: Este é o alias no seu model NotaFiscal
                 attributes: ['nome']
             }],
             attributes: [
                 'id',
                 'numero',
                 'data_emissao',
-                // Calcula o valor total da nota diretamente no banco para alta performance
                 [sequelize.literal('(SELECT SUM(valor_total) FROM itens_nota_fiscal WHERE nota_fiscal_id = "NotaFiscal"."id")'), 'valor_total_nota']
             ],
             order: [['data_emissao', 'DESC']]
         });
 
         if (notasFiscais.length === 0) {
-            return res.status(200).json({ status: true, data: [], message: "Nenhuma nota fiscal encontrada para o período selecionado." });
+            return res.status(200).json({ status: true, data: [], message: "Nenhuma nota fiscal encontrada para o período." });
         }
 
         const resultado = notasFiscais.map(nf => ({
@@ -58,8 +48,8 @@ exports.getInvoicesByDateRange = async (req, res) => {
 };
 
 /**
- * Busca os detalhes completos de UMA ÚNICA nota pelo seu ID.
- * Usado quando o usuário expande o card.
+ * 2. BUSCA UMA NOTA POR ID (PARA EXPANDIR DETALHES)
+ * Traz todos os detalhes de uma única nota, incluindo seus itens.
  */
 exports.getNotaPorId = async (req, res) => {
     try {
@@ -69,7 +59,7 @@ exports.getNotaPorId = async (req, res) => {
                 { model: Obra, as: 'obra', attributes: ['nome'] },
                 {
                     model: ItemNotaFiscal,
-                    as: 'itens', // PADRÃO: usando 'itens' como alias
+                    as: 'itens', // PADRÃO: Usando 'itens'. Verifique se este alias está correto no seu Model.
                     include: [{ model: Produto, as: 'produto', attributes: ['nome'] }]
                 }
             ]
@@ -82,10 +72,10 @@ exports.getNotaPorId = async (req, res) => {
         const notaFormatada = {
             ...nota.toJSON(),
             obra_nome: nota.obra ? nota.obra.nome : 'N/A',
-            itens: nota.itens.map(item => ({
+            itens: nota.itens ? nota.itens.map(item => ({
                 ...item.toJSON(),
                 produto_nome: item.produto ? item.produto.nome : 'Produto não encontrado'
-            }))
+            })) : []
         };
         res.status(200).json({ status: true, data: notaFormatada });
     } catch (error) {
@@ -95,18 +85,18 @@ exports.getNotaPorId = async (req, res) => {
 };
 
 /**
- * Busca os detalhes completos de UMA ÚNICA nota pelo seu número.
+ * 3. BUSCA UMA NOTA POR NÚMERO
  */
 exports.getNotaPorNumero = async (req, res) => {
     try {
-        const { numero } = req.params; // Corrigido de 'numeroNota' para 'numero' para corresponder à rota
+        const { numero } = req.params; // Usando 'numero' para corresponder à rota
         const nota = await NotaFiscal.findOne({
             where: { numero },
             include: [
                 { model: Obra, as: 'obra', attributes: ['nome'] },
                 {
                     model: ItemNotaFiscal,
-                    as: 'itens', // PADRÃO: usando 'itens' como alias
+                    as: 'itens', // PADRÃO: Usando 'itens'.
                     include: [{ model: Produto, as: 'produto', attributes: ['nome'] }]
                 }
             ]
@@ -119,10 +109,10 @@ exports.getNotaPorNumero = async (req, res) => {
         const notaFormatada = {
             ...nota.toJSON(),
             obra_nome: nota.obra ? nota.obra.nome : 'N/A',
-            itens: nota.itens.map(item => ({
+            itens: nota.itens ? nota.itens.map(item => ({
                 ...item.toJSON(),
                 produto_nome: item.produto ? item.produto.nome : 'Produto não encontrado'
-            }))
+            })) : []
         };
         res.status(200).json({ status: true, data: notaFormatada });
     } catch (error) {
@@ -132,7 +122,7 @@ exports.getNotaPorNumero = async (req, res) => {
 };
 
 /**
- * Exclui uma nota fiscal e seus itens associados.
+ * 4. DELETA UMA NOTA
  */
 exports.deleteNota = async (req, res) => {
     const { id } = req.params;
@@ -151,10 +141,43 @@ exports.deleteNota = async (req, res) => {
     }
 };
 
-// Mantenha suas outras funções como getMonthlyInvoices aqui se precisar delas
-exports.getMonthlyInvoices = async (req, res) => {
-    // ... seu código de getMonthlyInvoices ...
-    // Lembre-se de padronizar o alias 'as' para 'itens' se usar include aqui.
+
+/**
+ * 5. ADICIONA UMA NOVA NOTA
+ */
+exports.addInvoice = async (req, res) => {
+    const { numero, obra_id, itens, data_emissao } = req.body;
+    if (!numero || !obra_id || !itens || itens.length === 0 || !data_emissao) {
+        return res.status(400).json({ status: false, message: "Dados incompletos." });
+    }
+
+    try {
+        const notaFiscal = await NotaFiscal.create({ numero, obra_id, data_emissao: new Date(data_emissao) });
+        const itemPromises = itens.map(item => ItemNotaFiscal.create({
+            nota_fiscal_id: notaFiscal.id,
+            produto_id: item.produto_id,
+            quantidade: item.quantidade,
+            valor_unitario: item.valor_unitario,
+            valor_total: item.quantidade * item.valor_unitario,
+        }));
+        await Promise.all(itemPromises);
+        res.status(201).json({ status: true, message: "Nota fiscal salva com sucesso!", data: notaFiscal });
+    } catch (error) {
+        console.error("Erro ao salvar nota fiscal:", error);
+        res.status(500).json({ status: false, message: "Erro ao salvar nota fiscal." });
+    }
 };
 
-// A exportação agora é feita individualmente, o que é mais seguro contra esquecimentos.
+/**
+ * 6. BUSCA TOTAIS MENSAIS PARA GRÁFICOS
+ */
+exports.getMonthlyInvoices = async (req, res) => {
+    const { obraId } = req.params;
+    try {
+        // ... (Seu código original para getMonthlyInvoices pode ser mantido aqui,
+        // mas lembre-se de padronizar o alias para 'as: "itens"')
+        res.status(501).json({ status: false, message: "Rota não implementada." });
+    } catch (error) {
+        res.status(500).json({ status: false, message: "Erro ao buscar totais mensais." });
+    }
+};
