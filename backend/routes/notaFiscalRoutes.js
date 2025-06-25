@@ -1,18 +1,17 @@
-// routes/notaFiscalRoutes.js
 const express = require('express');
 const router = express.Router();
 const notaFiscalController = require('../controllers/notaFiscalController');
 
-// --- ROTAS ESPECÍFICAS VÊM PRIMEIRO ---
+// ROTA PARA CRIAÇÃO
+router.post('/', notaFiscalController.addInvoice);
+
+// --- ROTAS ESPECÍFICAS (com palavras fixas) VÊM PRIMEIRO ---
 router.get('/por-data', notaFiscalController.getInvoicesByDateRange);
-router.get('/numero/:numero', notaFiscalController.getNotaDetalhada);
+router.get('/numero/:numero', notaFiscalController.getNotaDetalhada); // Chama a função unificada
+router.get('/mensal/:obraId', notaFiscalController.getMonthlyInvoices);
 
-// --- ROTAS GENÉRICAS VÊM POR ÚLTIMO ---
-router.get('/:id', notaFiscalController.getNotaDetalhada);
-router.delete('/:id', notaFiscalController.deleteNota);
-
-// --- ROTA DE CRIAÇÃO ---
-// Adicione a rota POST se precisar criar notas
-// router.post('/', notaFiscalController.addInvoice);
+// --- ROTAS GENÉRICAS (com :id) VÊM POR ÚLTIMO ---
+router.get('/:id', notaFiscalController.getNotaDetalhada); // Também chama a função unificada
+router.delete('/:id', notaFiscalController.deleteInvoice);
 
 module.exports = router;
