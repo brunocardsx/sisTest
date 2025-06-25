@@ -5,28 +5,26 @@ const notaFiscalController = require('../controllers/notaFiscalController');
 
 // --- ROTAS ESPECÍFICAS (com palavras fixas) VÊM PRIMEIRO ---
 
-// Ex: GET /api/notas-fiscais/por-data?data_inicio=...&data_fim=...
+// Rota para buscar notas por período (para a lista)
 router.get('/por-data', notaFiscalController.getInvoicesByDateRange);
 
-// Ex: GET /api/notas-fiscais/numero/12345
-router.get('/numero/:numero', notaFiscalController.getNotaPorNumero);
-
-// Ex: GET /api/notas-fiscais/mensal/5
+// Rota para buscar totais mensais (para o dashboard)
 router.get('/mensal/:obraId', notaFiscalController.getMonthlyInvoices);
 
+// Rota para buscar nota por número
+router.get('/numero/:numeroNota', notaFiscalController.getNotaPorNumero);
 
-// --- ROTAS GENÉRICAS (com parâmetros como :id) VÊM POR ÚLTIMO ---
 
-// Ex: GET /api/notas-fiscais/11
+// --- ROTAS GENÉRICAS (com :id) VÊM POR ÚLTIMO ---
+
+// Rota para BUSCAR os detalhes de uma nota por ID
 router.get('/:id', notaFiscalController.getNotaPorId);
 
-// Ex: DELETE /api/notas-fiscais/11
+// Rota para EXCLUIR uma nota por ID
 router.delete('/:id', notaFiscalController.deleteNota);
 
 
-// --- ROTAS PARA CRIAÇÃO ---
-
-// Ex: POST /api/notas-fiscais/
+// --- ROTA PARA CRIAÇÃO ---
 router.post('/', notaFiscalController.addInvoice);
 
 
