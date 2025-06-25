@@ -1,3 +1,5 @@
+// src/nota-fiscal/NotaFiscal.js
+
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import './notaFiscal.css';
@@ -60,7 +62,7 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
                     <td data-label="Produto">{item.produto_nome}</td>
                     <td data-label="Qtd" className="text-right">{item.quantidade}</td>
                     <td data-label="Vl. Unit." className="text-right">{formatCurrency(item.valor_unitario)}</td>
-                    <td data-label="Total" className="text-right">{formatCurrency(item.valor_total_item)}</td>
+                    <td data-label="Total" className="text-right">{formatCurrency((item.quantidade || 0) * (item.valor_unitario || 0))}</td>
                 </tr>
             ))}
             </tbody>
@@ -72,30 +74,44 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
 const ExpandedInvoiceDetails = ({ notaId }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchDetails = async () => {
             setLoading(true);
+            setError('');
             try {
+                // A chamada para a nova rota do backend
                 const { data } = await api.get(`/api/notas-fiscais/${notaId}`);
                 if (data.status) {
                     const notaApi = data.data;
-                    let valorTotalNotaCalculado = 0;
-                    const itensCalculados = notaApi.itens.map(item => {
-                        const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
-                        valorTotalNotaCalculado += valorTotalItem;
-                        return { ...item, valor_total_item: valorTotalItem };
+                    const itensCalculados = notaApi.itens.map(item => ({
+                        ...item,
+                        valor_total_item: (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0)
+                    }));
+                    const valorTotalNotaCalculado = itensCalculados.reduce((sum, item) => sum + item.valor_total_item, 0);
+
+                    setDetails({
+                        ...notaApi,
+                        itens: itensCalculados,
+                        valor_total_nota: valorTotalNotaCalculado,
+                        data_emissao_formatada: formatDate(notaApi.data_emissao)
                     });
-                    setDetails({ ...notaApi, itens: itensCalculados, valor_total_nota: valorTotalNotaCalculado, data_emissao_formatada: formatDate(notaApi.data_emissao) });
+                } else {
+                    setError(data.message || 'Erro ao carregar dados.');
                 }
-            } catch (error) { console.error("Erro ao buscar detalhes da nota:", error);
-            } finally { setLoading(false); }
+            } catch (err) {
+                setError(err.response?.data?.message || 'Falha na comunicação com o servidor.');
+            } finally {
+                setLoading(false);
+            }
         };
         fetchDetails();
     }, [notaId]);
 
     if (loading) return <p className="details-feedback">Carregando detalhes...</p>;
-    if (!details) return <p className="details-feedback error">Não foi possível carregar os detalhes.</p>;
+    if (error) return <p className="details-feedback error">{error}</p>;
+    if (!details) return null;
 
     return <InvoiceDetails nota={details} />;
 };
@@ -172,12 +188,8 @@ export default function NotaFiscal() {
             const { data } = await api.get(`/api/notas-fiscais/numero/${numero.trim()}`);
             if (data.status) {
                 const notaApi = data.data;
-                let valorTotalNotaCalculado = 0;
-                const itensCalculados = notaApi.itens.map(item => {
-                    const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
-                    valorTotalNotaCalculado += valorTotalItem;
-                    return { ...item, valor_total_item: valorTotalItem };
-                });
+                const itensCalculados = notaApi.itens.map(item => ({...item, valor_total_item: (item.quantidade || 0) * (item.valor_unitario || 0)}));
+                const valorTotalNotaCalculado = itensCalculados.reduce((sum, item) => sum + item.valor_total_item, 0);
                 setNotaFiscalDetalhe({ ...notaApi, itens: itensCalculados, valor_total_nota: valorTotalNotaCalculado, data_emissao_formatada: formatDate(notaApi.data_emissao) });
                 setMsgConsulta({ type: '', text: '' });
             } else { setNotaFiscalDetalhe(null); setMsgConsulta({ type: 'error', text: data.message }); }
