@@ -3,29 +3,16 @@ const express = require('express');
 const router = express.Router();
 const notaFiscalController = require('../controllers/notaFiscalController');
 
-// --- ROTAS ESPECÍFICAS (com palavras fixas) VÊM PRIMEIRO ---
-
-// Rota para buscar notas por período (para a lista)
+// --- ROTAS ESPECÍFICAS VÊM PRIMEIRO ---
 router.get('/por-data', notaFiscalController.getInvoicesByDateRange);
+router.get('/numero/:numero', notaFiscalController.getNotaDetalhada);
 
-// Rota para buscar totais mensais (para o dashboard)
-router.get('/mensal/:obraId', notaFiscalController.getMonthlyInvoices);
-
-// Rota para buscar nota por número
-router.get('/numero/:numeroNota', notaFiscalController.getNotaPorNumero);
-
-
-// --- ROTAS GENÉRICAS (com :id) VÊM POR ÚLTIMO ---
-
-// Rota para BUSCAR os detalhes de uma nota por ID
-router.get('/:id', notaFiscalController.getNotaPorId);
-
-// Rota para EXCLUIR uma nota por ID
+// --- ROTAS GENÉRICAS VÊM POR ÚLTIMO ---
+router.get('/:id', notaFiscalController.getNotaDetalhada);
 router.delete('/:id', notaFiscalController.deleteNota);
 
-
-// --- ROTA PARA CRIAÇÃO ---
-router.post('/', notaFiscalController.addInvoice);
-
+// --- ROTA DE CRIAÇÃO ---
+// Adicione a rota POST se precisar criar notas
+// router.post('/', notaFiscalController.addInvoice);
 
 module.exports = router;
