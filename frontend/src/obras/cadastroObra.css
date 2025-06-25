@@ -75,7 +75,7 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s, opacity 0.2s;
+    transition: background-color 0.2s, opacity 0.2s, border-color 0.2s; /* Adicionado border-color a transição */
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-success { background-color: var(--db-accent-success); color: #1C1D21; }
@@ -98,6 +98,7 @@
     align-items: center;
     padding: 12px 8px;
     border-bottom: 1px solid var(--db-border-color);
+    transition: background-color 0.2s; /* Adiciona uma transição suave */
 }
 .obra-item:last-child { border-bottom: none; }
 .obra-item span { color: var(--db-text-secondary); }
@@ -108,7 +109,6 @@
 .feedback-message.success { background-color: rgba(52, 211, 153, 0.1); color: var(--db-accent-success); }
 .feedback-message.error { background-color: rgba(244, 113, 116, 0.1); color: var(--db-accent-danger); }
 
-/* Os estilos de modal são idênticos aos de sale.css, garantindo consistência */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
 .modal-content { background: var(--db-bg-card); padding: 24px; border-radius: var(--db-border-radius); width: 90%; max-width: 500px; display: flex; flex-direction: column; gap: 16px; }
 .modal-content h2 { font-size: 1.4rem; color: var(--db-text-primary); margin: 0; }
@@ -119,3 +119,43 @@
 .btn-modal.danger { background-color: var(--db-accent-danger); color: white; }
 .item-to-delete { font-weight: bold; color: var(--db-text-primary); }
 .delete-warning { font-size: 0.9rem; color: #FBBF24; }
+
+
+/* =================================================================== */
+/* ---             MEDIA QUERIES PARA RESPONSIVIDADE               --- */
+/* =================================================================== */
+
+/* Aplica estes estilos em telas com largura máxima de 768px (tablets e celulares) */
+@media (max-width: 768px) {
+
+    /* --- Layout Principal --- */
+    .obras-page-wrapper {
+        /* Muda o grid de duas colunas para uma única coluna */
+        grid-template-columns: 1fr;
+        padding: 16px; /* Reduz o espaçamento nas laterais */
+        gap: 16px;     /* Reduz o espaçamento entre os cards */
+    }
+
+    /* --- Ajustes nos Cards e Títulos --- */
+    .obra-card {
+        padding: 16px; /* Reduz o padding interno dos cards */
+    }
+    .obra-card-title {
+        font-size: 1.25rem; /* Diminui um pouco o tamanho do título */
+        padding-bottom: 12px;
+    }
+
+    /* --- Ajustes na Lista de Obras --- */
+    .obra-item {
+        /* Transforma cada item da lista em um "card" vertical */
+        flex-direction: column;
+        align-items: flex-start; /* Alinha o conteúdo à esquerda */
+        gap: 12px; /* Adiciona um espaço entre o nome e os botões */
+        padding: 16px 8px; /* Aumenta o padding vertical para mais respiro */
+    }
+
+    /* --- Ajustes no Modal --- */
+    .modal-content {
+        width: 95%; /* Garante que o modal não toque as bordas da tela */
+    }
+}
