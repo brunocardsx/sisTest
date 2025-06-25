@@ -1,4 +1,3 @@
-/* Usamos as mesmas variáveis do dashboard para consistência */
 :root {
     --db-bg-main: #1C1D21;
     --db-bg-card: #2A2D35;
@@ -12,10 +11,9 @@
     --db-font-main: 'Inter', sans-serif;
 }
 
-/* --- Container Principal da Página --- */
 .obras-page-wrapper {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Duas colunas de largura igual */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px;
     padding: 24px;
     font-family: var(--db-font-main);
@@ -24,7 +22,6 @@
     box-sizing: border-box;
 }
 
-/* --- Estilo Genérico para os Cards --- */
 .obra-card {
     background-color: var(--db-bg-card);
     border-radius: var(--db-border-radius);
@@ -42,7 +39,6 @@
     border-bottom: 1px solid var(--db-border-color);
 }
 
-/* --- Formulários --- */
 .form-group label {
     display: block;
     font-size: 0.875rem;
@@ -67,7 +63,6 @@
     box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
 }
 
-/* --- Botões --- */
 .btn {
     padding: 12px 20px;
     font-size: 0.95rem;
@@ -75,7 +70,7 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s, opacity 0.2s, border-color 0.2s; /* Adicionado border-color a transição */
+    transition: background-color 0.2s, opacity 0.2s, border-color 0.2s;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-success { background-color: var(--db-accent-success); color: #1C1D21; }
@@ -84,13 +79,12 @@
 .btn-danger:hover:not(:disabled) { background-color: var(--db-accent-danger); color: white; border-color: var(--db-accent-danger); }
 .btn-full-width { width: 100%; }
 
-/* --- Lista de Obras --- */
 .obras-list-container {
     padding: 0;
     margin: 0;
     list-style: none;
     overflow-y: auto;
-    flex-grow: 1; /* Faz a lista ocupar o espaço restante */
+    flex-grow: 1;
 }
 .obra-item {
     display: flex;
@@ -98,13 +92,12 @@
     align-items: center;
     padding: 12px 8px;
     border-bottom: 1px solid var(--db-border-color);
-    transition: background-color 0.2s; /* Adiciona uma transição suave */
+    transition: background-color 0.2s;
 }
 .obra-item:last-child { border-bottom: none; }
 .obra-item span { color: var(--db-text-secondary); }
 .list-feedback { text-align: center; color: var(--db-text-label); padding: 30px; }
 
-/* --- Feedback e Modais --- */
 .feedback-message { padding: 12px; border-radius: 8px; font-weight: 500; text-align: center; }
 .feedback-message.success { background-color: rgba(52, 211, 153, 0.1); color: var(--db-accent-success); }
 .feedback-message.error { background-color: rgba(244, 113, 116, 0.1); color: var(--db-accent-danger); }
@@ -120,42 +113,47 @@
 .item-to-delete { font-weight: bold; color: var(--db-text-primary); }
 .delete-warning { font-size: 0.9rem; color: #FBBF24; }
 
-
 /* =================================================================== */
-/* ---             MEDIA QUERIES PARA RESPONSIVIDADE               --- */
+/*             MEDIA QUERIES PARA RESPONSIVIDADE               */
 /* =================================================================== */
 
-/* Aplica estes estilos em telas com largura máxima de 768px (tablets e celulares) */
 @media (max-width: 768px) {
-
-    /* --- Layout Principal --- */
     .obras-page-wrapper {
-        /* Muda o grid de duas colunas para uma única coluna */
         grid-template-columns: 1fr;
-        padding: 16px; /* Reduz o espaçamento nas laterais */
-        gap: 16px;     /* Reduz o espaçamento entre os cards */
+        padding: 16px;
+        gap: 16px;
     }
 
-    /* --- Ajustes nos Cards e Títulos --- */
     .obra-card {
-        padding: 16px; /* Reduz o padding interno dos cards */
+        padding: 16px;
     }
     .obra-card-title {
-        font-size: 1.25rem; /* Diminui um pouco o tamanho do título */
+        font-size: 1.25rem;
         padding-bottom: 12px;
     }
 
-    /* --- Ajustes na Lista de Obras --- */
     .obra-item {
-        /* Transforma cada item da lista em um "card" vertical */
         flex-direction: column;
-        align-items: flex-start; /* Alinha o conteúdo à esquerda */
-        gap: 12px; /* Adiciona um espaço entre o nome e os botões */
-        padding: 16px 8px; /* Aumenta o padding vertical para mais respiro */
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 8px;
     }
 
-    /* --- Ajustes no Modal --- */
+    /* Adicionamos um container para os botões para melhor controle */
+    .obra-item-actions {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end; /* Alinha os botões à direita */
+        gap: 12px; /* Espaço entre os botões */
+    }
+
+    /* Ajusta o padding e o tamanho da fonte dos botões de ação */
+    .obra-item .btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+
     .modal-content {
-        width: 95%; /* Garante que o modal não toque as bordas da tela */
+        width: 95%;
     }
 }
