@@ -89,11 +89,16 @@ exports.getNotaPorId = async (req, res) => {
                 { model: Obra, as: 'obra', attributes: ['nome'] },
                 {
                     model: ItemNotaFiscal,
-                    as: 'itensDaNota', // USANDO SEU ALIAS ORIGINAL
-                    include: [{ model: Produto, as: 'produto', attributes: ['nome'] }]
+                    as: 'itens', // <<< CORRESPONDE AO MODEL AGORA
+                    include: [{
+                        model: Produto,
+                        as: 'produto', // <<< Este vem do ItemNotaFiscal.js Model e está correto
+                        attributes: ['nome']
+                    }]
                 }
             ]
         });
+        
         if (!nota) return res.status(404).json({ status: false, message: 'Nota fiscal não encontrada.' });
         const notaFormatada = { ...nota.toJSON(), obra_nome: nota.obra ? nota.obra.nome : 'N/A', itens: nota.itensDaNota || [] };
         res.status(200).json({ status: true, data: notaFormatada });
