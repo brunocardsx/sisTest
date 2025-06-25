@@ -37,10 +37,11 @@ const InvoiceDetails = ({ nota, onOpenDeleteModal }) => (
             <tbody>
             {nota.itens.map((item, i) => (
                 <tr key={i}>
-                    <td>{item.produto_nome}</td>
-                    <td className="text-right">{item.quantidade}</td>
-                    <td className="text-right">{formatCurrency(item.valor_unitario)}</td>
-                    <td className="text-right">{formatCurrency(item.valor_total_item)}</td>
+                    {/* CORREÇÃO: Adicionado data-label para responsividade */}
+                    <td data-label="Produto">{item.produto_nome}</td>
+                    <td data-label="Qtd" className="text-right">{item.quantidade}</td>
+                    <td data-label="Vl. Unit." className="text-right">{formatCurrency(item.valor_unitario)}</td>
+                    <td data-label="Total" className="text-right">{formatCurrency(item.valor_total_item)}</td>
                 </tr>
             ))}
             </tbody>
@@ -70,10 +71,11 @@ const InvoicesList = ({ notas, onOpenDeleteModal }) => (
             <tbody>
             {notas.map((nota) => (
                 <tr key={nota.id}>
-                    <td>{nota.numero}</td>
-                    <td>{nota.data_emissao_formatada}</td>
-                    <td>{nota.obra_nome}</td>
-                    <td className="text-right">{formatCurrency(nota.valor_total_nota)}</td>
+                    {/* CORREÇÃO: Adicionado data-label para responsividade */}
+                    <td data-label="Nº Nota">{nota.numero}</td>
+                    <td data-label="Data">{nota.data_emissao_formatada}</td>
+                    <td data-label="Obra">{nota.obra_nome}</td>
+                    <td data-label="Valor" className="text-right">{formatCurrency(nota.valor_total_nota)}</td>
                     <td className="action-col"><button className="btn" onClick={() => onOpenDeleteModal(nota)}>Excluir</button></td>
                 </tr>
             ))}
@@ -137,7 +139,6 @@ export default function NotaFiscal() {
             if (data.status) {
                 const notaApi = data.data;
 
-                // FIX: Recalcula os totais da nota e dos itens, pois a API pode retornar valores incorretos.
                 let valorTotalNotaCalculado = 0;
                 const itensCalculados = notaApi.itens.map(item => {
                     const valorTotalItem = (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0);
@@ -153,7 +154,7 @@ export default function NotaFiscal() {
                 };
 
                 setNotaFiscalDetalhe(notaDetalhadaCorrigida);
-                setMsgConsulta({ type: '', text: '' }); // Limpa mensagens anteriores em caso de sucesso
+                setMsgConsulta({ type: '', text: '' });
             } else {
                 setNotaFiscalDetalhe(null);
                 setMsgConsulta({ type: 'error', text: data.message });

@@ -1,107 +1,235 @@
+/* Usamos as mesmas variáveis do dashboard para consistência */
+:root {
+    --db-bg-main: #1C1D21;
+    --db-bg-card: #2A2D35;
+    --db-text-primary: #F0F2F5; /* Cor principal para títulos e agora para dados */
+    --db-text-secondary: #F0F2F5; /* Dados importantes com a cor mais brilhante */
+    --db-text-label: #A9B1C2;      /* Rótulos e cabeçalhos com um tom mais suave para hierarquia */
+    --db-accent-primary: #2DD4BF;
+    --db-accent-danger: #F47174;
+    --db-border-color: #3B3E47;
+    --db-border-radius: 16px;
+    --db-font-main: 'Inter', sans-serif;
+}
+
+/* --- Container Principal da Página --- */
+.nf-page-wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 24px;
+    padding: 24px;
+    font-family: var(--db-font-main);
+    background-color: var(--db-bg-main);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Estilo Genérico para os Cards --- */
+.nf-card {
+    background-color: var(--db-bg-card);
+    border-radius: var(--db-border-radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.nf-card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--db-text-primary);
+    margin: 0;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--db-border-color);
+}
+
+/* --- Formulários --- */
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--db-text-label);
+    margin-bottom: 8px;
+}
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: var(--db-text-primary);
+    background-color: var(--db-bg-main);
+    border: 1px solid var(--db-border-color);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.form-input:focus {
+    border-color: var(--db-accent-primary);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+}
+.date-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* --- Botões --- */
+.btn {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background-color: var(--db-accent-primary); color: #1C1D21; }
+.btn-primary:hover:not(:disabled) { background-color: #5EEAD4; }
+.btn-danger { background-color: var(--db-accent-danger); color: white; margin-top: auto; }
+.btn-danger:hover:not(:disabled) { background-color: #FB7185; }
+.btn-full-width { width: 100%; }
+
+/* --- Resultados e Tabelas --- */
+.results-container {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--db-border-color);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; }
+.info-grid p { margin: 0; font-size: 0.9rem; }
+.info-grid p strong { color: var(--db-text-label); font-weight: 500; }
+.info-grid p span { color: var(--db-text-secondary); font-weight: 500; }
+
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table th, .items-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--db-border-color); }
+.items-table th { font-size: 0.75rem; color: var(--db-text-label); text-transform: uppercase; }
+.items-table td { font-size: 0.9rem; color: var(--db-text-secondary); }
+.items-table .text-right { text-align: right; }
+.items-table .action-col { text-align: center; }
+
+.action-col .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    background-color: var(--db-bg-main);
+    color: var(--db-text-secondary);
+    font-weight: 500;
+}
+.action-col .btn:hover:not(:disabled) {
+    background-color: var(--db-accent-danger);
+    color: white;
+}
+
+.feedback-message { padding: 12px; border-radius: 8px; font-weight: 500; text-align: center; }
+.feedback-message.success { background-color: rgba(52, 211, 153, 0.1); color: #34D399; }
+.feedback-message.error { background-color: rgba(244, 113, 116, 0.1); color: #F47174; }
+.feedback-message.info { background-color: rgba(96, 165, 250, 0.1); color: #60A5FA; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+.modal-content { background: var(--db-bg-card); padding: 24px; border-radius: var(--db-border-radius); width: 90%; max-width: 500px; display: flex; flex-direction: column; gap: 16px; }
+.modal-content h2 { font-size: 1.4rem; color: var(--db-text-primary); margin: 0; }
+.modal-content p { color: var(--db-text-secondary); margin: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.btn-modal { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+.btn-modal.cancel { background-color: var(--db-bg-main); color: var(--db-text-secondary); }
+.btn-modal.danger { background-color: var(--db-accent-danger); color: white; }
+.item-to-delete { font-weight: bold; color: var(--db-text-primary); }
+.delete-warning { font-size: 0.9rem; color: #FBBF24; }
+
+
 /* =================================================================== */
-/* ---             MEDIA QUERIES PARA RESPONSIVIDADE               --- */
+/* ---          MEDIA QUERIES PARA RESPONSIVIDADE (MOBILE)         --- */
 /* =================================================================== */
 
-/* Aplica estes estilos em telas com largura máxima de 768px (tablets e celulares) */
 @media (max-width: 768px) {
 
     /* --- Layout Principal --- */
     .nf-page-wrapper {
-        /* Muda o grid de duas colunas para uma única coluna */
         grid-template-columns: 1fr;
-        padding: 16px; /* Reduz o espaçamento nas laterais */
-        gap: 16px;     /* Reduz o espaçamento entre os cards */
+        padding: 16px;
+        gap: 16px;
     }
 
-    /* --- Ajustes nos Cards e Títulos --- */
+    /* --- Cards, Títulos e Formulários --- */
     .nf-card {
-        padding: 16px; /* Reduz o padding interno dos cards */
+        padding: 16px;
     }
     .nf-card-title {
-        font-size: 1.25rem; /* Diminui um pouco o tamanho do título */
+        font-size: 1.25rem;
         padding-bottom: 12px;
     }
-
-    /* --- Ajustes nos Formulários --- */
-    .date-form-grid,
-    .info-grid {
-        /* Também transforma grids internos em uma única coluna */
+    .date-form-grid, .info-grid {
         grid-template-columns: 1fr;
     }
     .info-grid {
-        gap: 12px; /* Aumenta um pouco o espaçamento vertical na visualização de coluna única */
+        gap: 12px;
     }
 
+    /* --- REFORMULAÇÃO DAS TABELAS PARA O FORMATO DE "CARDS" --- */
 
-    /* --- A MÁGICA: Transformando as Tabelas em "Cards" --- */
+    .items-table {
+        border-collapse: separate; /* Necessário para 'border-spacing' funcionar */
+        border-spacing: 0 16px;   /* Cria o espaçamento vertical entre os "cards" */
+    }
 
-    /* 1. Esconde o cabeçalho original da tabela (thead) */
+    /* 1. Esconde o cabeçalho original da tabela */
     .items-table thead {
         display: none;
     }
 
-    /* 2. Transforma cada linha (tr) em um bloco que parece um card */
+    /* 2. Remove estilos padrão e prepara as linhas e células */
+    .items-table tr, .items-table td {
+        display: block; /* Empilha os elementos */
+        width: 100%;
+        border: none;
+        text-align: right; /* Alinha o VALOR à direita */
+    }
     .items-table tr {
-        display: block;
-        border: 1px solid var(--db-border-color);
+        background-color: var(--db-bg-main); /* Um fundo levemente diferente para o card */
         border-radius: 8px;
-        margin-bottom: 16px;
-        padding: 8px;
-    }
-    .items-table tr:last-child {
-        margin-bottom: 0;
+        padding: 12px;
+        box-sizing: border-box;
     }
 
-    /* 3. Transforma cada célula (td) para empilhar verticalmente */
-    .items-table td {
-        display: flex; /* Usamos flexbox para alinhar o label e o valor */
-        justify-content: space-between; /* Label à esquerda, valor à direita */
-        align-items: center;
-        padding: 10px 4px;
-        border-bottom: 1px dashed rgba(59, 62, 71, 0.5); /* Linha divisória sutil */
-        text-align: right; /* Alinha o conteúdo da célula (o valor) à direita */
-    }
-    .items-table td:last-child {
-        border-bottom: none; /* Remove a borda da última célula de cada "card" */
-    }
-
-    /* 4. Adiciona os labels (textos do cabeçalho) antes de cada dado usando um pseudo-elemento */
+    /* 3. Adiciona os RÓTULOS (labels) antes de cada dado */
     .items-table td::before {
+        content: attr(data-label); /* Pega o texto do atributo 'data-label' */
+        float: left; /* Alinha o RÓTULO à esquerda */
         font-weight: 500;
         color: var(--db-text-label);
-        text-align: left;
-        margin-right: 16px; /* Espaço entre o label e o valor */
+        margin-right: 16px;
     }
 
-    /* --- Labels específicos para a tabela de DETALHES DA NOTA (4 colunas) --- */
-    .results-container .items-table tr td:nth-of-type(1)::before { content: 'Produto:'; }
-    .results-container .items-table tr td:nth-of-type(2)::before { content: 'Qtd:'; }
-    .results-container .items-table tr td:nth-of-type(3)::before { content: 'Vl. Unit.:'; }
-    .results-container .items-table tr td:nth-of-type(4)::before { content: 'Total:'; }
+    /* 4. Estiliza cada célula de dados */
+    .items-table td {
+        padding: 8px 4px;
+        border-bottom: 1px solid var(--db-border-color);
+    }
+    .items-table tr td:last-of-type {
+        border-bottom: none; /* Remove a borda da última célula */
+    }
 
-    /* --- Labels específicos para a tabela de LISTA DE NOTAS (5 colunas) --- */
-    /* Usamos :has() para selecionar a linha que contém a coluna de ação */
-    .items-table tbody tr:has(.action-col) td:nth-of-type(1)::before { content: 'Nº Nota:'; }
-    .items-table tbody tr:has(.action-col) td:nth-of-type(2)::before { content: 'Data:'; }
-    .items-table tbody tr:has(.action-col) td:nth-of-type(3)::before { content: 'Obra:'; }
-    .items-table tbody tr:has(.action-col) td:nth-of-type(4)::before { content: 'Valor:'; }
-
-    /* 5. Estiliza a célula de ação de forma especial */
+    /* 5. Estiliza a coluna de AÇÃO de forma especial */
     .items-table .action-col {
-        justify-content: center;
-        padding: 12px 0 4px 0; /* Ajusta padding para o botão */
+        padding-top: 12px;
     }
     .items-table .action-col::before {
-        display: none; /* A célula de ação não precisa de label */
+        display: none; /* Ação não precisa de rótulo */
     }
     .items-table .action-col .btn {
-        width: 100%; /* Faz o botão ocupar a largura toda do "card" */
+        width: 100%;
+        padding: 10px;
         background-color: var(--db-accent-danger);
         color: white;
     }
+    .items-table .action-col .btn:hover:not(:disabled) {
+        background-color: #FB7185;
+    }
 
-    /* --- Ajustes no Modal --- */
+    /* --- Modal --- */
     .modal-content {
-        width: 95%; /* Garante que o modal não toque as bordas da tela */
+        width: 95%;
     }
 }
