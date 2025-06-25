@@ -15,11 +15,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
     gap: 24px;
-    padding: 24px;
     font-family: var(--db-font-main);
-    background-color: var(--db-bg-main);
-    min-height: 100vh;
-    box-sizing: border-box;
+    /* Removido o padding e background daqui para serem controlados pelo App.css */
+    height: 100%;
 }
 
 .nf-card {
@@ -282,9 +280,15 @@
     }
 }
 
+/* ========================================================== */
+/*           CORREÇÃO DEFINITIVA PARA RESPONSIVIDADE          */
+/* ========================================================== */
 @media (max-width: 768px) {
     .nf-page-wrapper {
-        padding: 16px;
+        /* Remove o padding e o fundo próprios para herdar do layout principal */
+        padding: 0;
+        background-color: transparent;
+        /* Mantém o espaçamento entre os cards */
         gap: 16px;
     }
 
@@ -296,10 +300,7 @@
         font-size: 1.25rem;
     }
 
-    .date-form-grid {
-        grid-template-columns: 1fr;
-    }
-
+    .date-form-grid,
     .info-grid {
         grid-template-columns: 1fr;
     }

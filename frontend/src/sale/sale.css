@@ -17,11 +17,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 24px;
-  padding: 24px;
-  font-family: var(--db-font-main);
-  background-color: var(--db-bg-main);
   height: 100%;
-  box-sizing: border-box;
 }
 
 .sale-card {
@@ -177,7 +173,6 @@
 @media (max-width: 1024px) {
   .sale-page-wrapper {
     grid-template-columns: 1fr;
-    padding: 16px;
   }
 }
 
@@ -185,38 +180,43 @@
 /*           REGRAS DE RESPONSIVIDADE PARA MOBILE             */
 /* ========================================================== */
 @media (max-width: 768px) {
-  .sale-card {
-    padding: 16px; /* Reduz o espaçamento interno dos cards */
+  .sale-page-wrapper {
+    /* Remove o padding e o fundo para herdar do layout principal */
+    padding: 0;
+    background-color: transparent;
+    gap: 16px;
   }
 
-  /* Empilha os campos de quantidade e preço */
+  .sale-card {
+    padding: 16px;
+  }
+
   .product-entry-grid {
     grid-template-columns: 1fr;
   }
 
   .sale-card-title {
-    font-size: 1.25rem; /* Diminui o título */
+    font-size: 1.25rem;
   }
 
   .total-summary {
-    font-size: 1.1rem; /* Diminui o texto do total */
+    font-size: 1.1rem;
   }
 
-  /* --- Transforma a tabela de itens em uma lista de cards --- */
   .items-table thead {
-    display: none; /* Esconde o cabeçalho original da tabela */
+    display: none;
   }
 
   .items-table tr {
-    display: grid; /* Usa grid para mais controle sobre o layout */
-    grid-template-columns: 1fr auto; /* Coluna para info, coluna para o botão */
+    display: grid;
+    grid-template-columns: 1fr auto;
     gap: 0 16px;
     align-items: center;
     border-bottom: 1px solid var(--db-border-color);
     padding: 12px 0;
   }
   .items-table .empty-row {
-    display: table-row; /* Mantém a linha de "nenhum item" como estava */
+    display: table-row;
   }
 
   .items-table td {
@@ -227,7 +227,6 @@
     background: none;
   }
 
-  /* Agrupa nome, qtd e valor */
   .items-table .item-info {
     grid-column: 1 / 2;
   }
@@ -240,10 +239,9 @@
     color: var(--db-text-secondary);
   }
 
-  /* Coloca o botão de remover na segunda coluna */
   .items-table .btn-remove {
     grid-column: 2 / 3;
-    grid-row: 1 / 3; /* Ocupa a altura toda da linha */
+    grid-row: 1 / 3;
     align-self: center;
     font-size: 1.2rem;
   }

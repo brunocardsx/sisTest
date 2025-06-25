@@ -15,11 +15,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px;
-    padding: 24px;
-    font-family: var(--db-font-main);
-    background-color: var(--db-bg-main);
     height: 100%;
-    box-sizing: border-box;
 }
 
 .obra-card {
@@ -120,7 +116,9 @@
 @media (max-width: 768px) {
     .obras-page-wrapper {
         grid-template-columns: 1fr;
-        padding: 16px;
+        /* Remove o padding e o fundo para herdar do layout principal */
+        padding: 0;
+        background-color: transparent;
         gap: 16px;
     }
 
@@ -139,15 +137,13 @@
         padding: 16px 8px;
     }
 
-    /* Adicionamos um container para os botões para melhor controle */
     .obra-item-actions {
         width: 100%;
         display: flex;
-        justify-content: flex-end; /* Alinha os botões à direita */
-        gap: 12px; /* Espaço entre os botões */
+        justify-content: flex-end;
+        gap: 12px;
     }
 
-    /* Ajusta o padding e o tamanho da fonte dos botões de ação */
     .obra-item .btn {
         padding: 8px 16px;
         font-size: 0.85rem;
