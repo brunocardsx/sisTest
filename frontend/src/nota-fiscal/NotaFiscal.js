@@ -81,10 +81,10 @@ const ExpandedInvoiceDetails = ({ notaId }) => {
             setLoading(true);
             setError('');
             try {
-                // A chamada para a nova rota do backend
                 const { data } = await api.get(`/api/notas-fiscais/${notaId}`);
                 if (data.status) {
                     const notaApi = data.data;
+                    // Recalcula os totais aqui, pois a lista principal foi otimizada
                     const itensCalculados = notaApi.itens.map(item => ({
                         ...item,
                         valor_total_item: (parseFloat(item.quantidade) || 0) * (parseFloat(item.valor_unitario) || 0)
