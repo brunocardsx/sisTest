@@ -126,7 +126,9 @@
 .items-table .text-right { text-align: right; }
 
 @media (max-width: 900px) {
-    .nf-page-wrapper { grid-template-columns: 1fr; }
+    .nf-page-wrapper {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 768px) {
@@ -146,7 +148,7 @@
     .items-table tr {
         display: block;
         border-bottom: 1px solid var(--db-border-color);
-        padding: 12px 0;
+        padding-bottom: 12px;
         margin-bottom: 12px;
     }
     .items-table tr:last-child {
@@ -155,6 +157,7 @@
         padding-bottom: 0;
     }
 
+    /* CORREÇÃO APLICADA AQUI */
     .items-table td {
         display: flex;
         justify-content: space-between;
@@ -169,13 +172,18 @@
         font-weight: 500;
         color: var(--db-text-label);
         padding-right: 16px;
-        flex-shrink: 0; /* Impede que o rótulo encolha */
+        flex-shrink: 0; /* Impede que o rótulo ("Produto", "Qtd") encolha */
     }
 
-    /* CORREÇÃO APLICADA AQUI */
-    .items-table td[data-label="Produto"] {
-        /* O valor (nome do produto) pode precisar de mais espaço */
+    .items-table td > span {
         text-align: right;
-        word-break: break-word; /* Permite quebrar a linha se o nome for muito longo */
+        font-weight: 500;
+        color: var(--db-text-primary);
+        word-break: break-word; /* Quebra a linha de nomes de produtos muito longos */
+    }
+
+    /* Dando um destaque especial para o nome do produto */
+    .items-table td[data-label="Produto"] > span {
+        font-weight: 600;
     }
 }
