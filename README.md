@@ -288,7 +288,7 @@ Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) par
 **Bruno Cardoso**
 
 - **GitHub**: [@brunocardsx](https://github.com/brunocardsx)
-- **Email**: [seu-email@exemplo.com]
+- **Email**: [bruno.cards1@gmail.com]
 
 ---
 
