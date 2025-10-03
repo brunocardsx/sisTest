@@ -57,7 +57,7 @@ export default function Login() {
           <div className="login-form-container">
             <div className="form-box">
               <div className="logo">
-                <div className="logo-main">GN EMPREENDIMENTOS</div>
+                <div className="logo-main">CONSTRUTECH</div>
                 <div className="logo-sub">IMÓVEIS</div>
               </div>
               <h2>Acesse o <strong>PORTAL DE GESTÃO</strong></h2>
